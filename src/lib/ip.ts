@@ -1,5 +1,13 @@
 export type AddressKind = 'ipv4' | 'ipv6' | 'invalid'
 
+export type AddressScope =
+  | 'private'
+  | 'loopback'
+  | 'link-local'
+  | 'ula'
+  | 'global'
+  | 'invalid'
+
 const CANON_OCTET = /^(0|[1-9]\d{0,2})$/
 
 export function parseIPv4Octets(raw: string): number[] | null {
@@ -140,4 +148,46 @@ export function expandIPv6(raw: string): string | null {
 
 export function formatOctets(octets: number[]): string {
   return octets.join('.')
+}
+
+export function ipv4Scope(octets: number[]): AddressScope {
+  const a = octets[0] ?? 0
+  const b = octets[1] ?? 0
+  if (a === 127) return 'loopback'
+  if (a === 10) return 'private'
+  if (a === 192 && b === 168) return 'private'
+  if (a === 172 && b >= 16 && b <= 31) return 'private'
+  if (a === 169 && b === 254) return 'link-local'
+  return 'global'
+}
+
+function ipv6LeadingByte(expanded: string): number {
+  const first = expanded.slice(0, 4)
+  return Number.parseInt(first, 16)
+}
+
+export function ipv6Scope(raw: string): AddressScope {
+  const expanded = expandIPv6(raw)
+  if (!expanded) return 'invalid'
+  if (expanded === '0000:0000:0000:0000:0000:0000:0000:0001') return 'loopback'
+  const lead = ipv6LeadingByte(expanded)
+  if ((lead & 0xffc0) === 0xfe80) return 'link-local'
+  if ((lead & 0xfe00) === 0xfc00) return 'ula'
+  return 'global'
+}
+
+export function addressScope(raw: string): AddressScope {
+  const kind = classifyAddress(raw)
+  if (kind === 'ipv4') {
+    const octets = parseIPv4Octets(raw)
+    return octets ? ipv4Scope(octets) : 'invalid'
+  }
+  if (kind === 'ipv6') return ipv6Scope(raw)
+  return 'invalid'
+}
+
+export function sameIPv4Prefix(a: number[], b: number[], prefixLen: number): boolean {
+  const bitsA = ipv4ToBits(a)
+  const bitsB = ipv4ToBits(b)
+  return bitsA.slice(0, prefixLen).join('') === bitsB.slice(0, prefixLen).join('')
 }

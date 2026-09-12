@@ -1,8 +1,10 @@
 # 網絡傳送實驗
 
-GitHub Pages 靜態站，用書面**廣東話**（唔係書面普通話）教 computer networking。對象係香港**大專**新生：術語保留英文（octet、prefix、dual-stack），旁邊用粵語解釋。第一個單元係 IPv4／IPv6 位址；資訊架構已經預留更多網絡單元，同獨立嘅「伺服器維護」軌道。
+GitHub Pages 靜態站，用書面**廣東話**教 computer networking。對象係香港**大專**：問題 → 日常 usecase → 親手玩 → 先至安專有名詞。第一期只解鎖**單元 1「點樣搵到對方」**（IPv4／IPv6 連埋 local vs global，虛擬封包 lab）。地圖預告單元 2–13，內容鎖住。另開「伺服器維護」軌道佔位。
 
-呢個 repo **冇後端、冇登入、冇收費 API**。進度預設寫入瀏覽器 `localStorage`，亦可以匯出／匯入「進度碼」或者 JSON 檔。
+冇後端、冇登入、冇收費 API。進度：`localStorage` + 「進度碼」／JSON 匯出匯入。
+
+**玩法：** 扮 lab 係主菜。之後單元先至有可選公開白名單（httpbin、badssl、neverssl、example.com、1.1.1.1、icanhazip、Cloudflare 站睇 `h3`、`ssh -T git@github.com`）。唔亂 telnet 人哋 MX、唔掃 port、真 SMTP 出網唔玩。瀏覽器做唔到真 ICMP。
 
 ## 本機行
 
@@ -20,36 +22,27 @@ npm run build
 npm run preview
 ```
 
-`preview` 同樣用 46217。靜態產出喺 `dist/`。用咗 HashRouter，喺 GitHub Pages 子路徑都可以開深層書籤。
+`preview` 同樣用 46217。靜態產出喺 `dist/`。HashRouter，適合 GitHub Pages 子路徑。
 
 ## GitHub Pages（帳戶 agentfuture818）
 
-Workflow 喺 `.github/workflows/pages.yml`，用 **GitHub Actions** 建站再 deploy（免費 Pages，唔使 GitHub Pro）。
+Workflow：`.github/workflows/pages.yml`（免費 Actions Pages）。
 
-1. 喺 [github.com/agentfuture818](https://github.com/agentfuture818) 開一個 public repo，然後把呢個專案 push 上去。
-2. **Settings → Pages → Build and deployment → Source** 揀 **GitHub Actions**。
-3. 確保 Actions 權限允許 workflow 跑（Settings → Actions → General）。
-4. Push `main`（或者喺 Actions 手動 `workflow_dispatch`）。
-5. Project site URL：`https://agentfuture818.github.io/<repo-name>/`  
-   如果 repo 名係 `agentfuture818.github.io`，workflow 會用 `base: /`，URL 就係 `https://agentfuture818.github.io/`。
+1. 喺 [github.com/agentfuture818](https://github.com/agentfuture818) 開 public repo，push 呢個專案。
+2. Settings → Pages → Source 揀 **GitHub Actions**。
+3. 確保 Actions 可跑。Push `main` 或手動 `workflow_dispatch`。
+4. URL：`https://agentfuture818.github.io/<repo-name>/`；若 repo 名係 `agentfuture818.github.io`，則 `https://agentfuture818.github.io/`。
 
-本機 `vite.config.ts` 預設 `base: './'`。CI 會按 repo 名設定 `GITHUB_PAGES_BASE`。
+本機 `vite.config.ts` 預設 `base: './'`。CI 會設 `GITHUB_PAGES_BASE`。
 
-## 而家有咩課
+## 課程地圖
 
-軌道 **網絡傳送** → 單元 **IPv4 同 IPv6 位址**：
+**可玩：** 單元 1 點樣搵到對方（問題先行、屋企 LAN vs 外網朋友、IPv4 私網／IPv6 ULA／global 一齊送封包、之後先讀 octet／prefix／dual-stack、兩項練習）。
 
-1. 點解主機要有 IP 地址（轉發需要 destination；郵政只係系統層類比）
-2. 點樣讀 IPv4：octet、32-bit、prefix length
-3. 用 IPv4 傳送封包（hop-by-hop、TTL、destination bits）
-4. IPv6 點解出現、hextet 同 `::` 壓縮
-5. IPv4 vs IPv6 同 dual-stack
-6. 練習：分辨位址類型；砌／修正位址（即時回饋）
-
-未寫（只佔位）：封包 header、CIDR、DNS、伺服器維護。
+**鎖住預告（2–13）：** Ping／ICMP（包括 ping 唔到 port）、subnet／switch／router、broadcast／multicast、packet loss、TCP vs UDP、HTTP／HTTPS、WebRTC、telnet／nc 手打假 SMTP／HTTP、SSH vs telnet 登入、CDN（Cloudflare）、HTTP/3 QUIC over UDP、WARP ≠ CDN（MASQUE／QUIC 隧道）。
 
 ## 進度碼
 
-- 本機 key：`netlab.progress.v1`
-- 進度碼格式：`NL1.<payload>.<checksum>`
-- 格式錯、校驗失敗、JSON 唔合規格會喺「進度」頁顯示錯誤，唔會默默蓋掉
+- 本機 key：`netlab.progress.v2`
+- 格式：`NL1.<payload>.<checksum>`
+- 格式錯、校驗失敗會顯示錯誤，唔會默默蓋掉

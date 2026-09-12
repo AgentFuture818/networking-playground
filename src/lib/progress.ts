@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'netlab.progress.v1'
+const STORAGE_KEY = 'netlab.progress.v2'
 const CODE_PREFIX = 'NL1'
 
 export type GameScore = {

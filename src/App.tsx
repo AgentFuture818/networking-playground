@@ -16,6 +16,14 @@ export default function App() {
         <Routes>
           <Route element={<AppShell />}>
             <Route path="/" element={<HomePage />} />
+            <Route
+              path="/tracks/network/units/ip-address/*"
+              element={<Navigate to="/tracks/network/units/find-host" replace />}
+            />
+            <Route
+              path="/tracks/network/units/http-ports"
+              element={<Navigate to="/tracks/network/units/http-https" replace />}
+            />
             <Route path="/tracks/:trackId" element={<TrackPage />} />
             <Route path="/tracks/:trackId/units/:unitId" element={<UnitPage />} />
             <Route path="/tracks/:trackId/units/:unitId/lessons/:lessonId" element={<LessonPage />} />

@@ -30,7 +30,7 @@ export function AppShell() {
             <Activity className="size-5 text-primary" aria-hidden />
             <div>
               <p className="text-sm font-semibold tracking-wide">網絡傳送實驗</p>
-              <p className="text-muted-foreground text-xs">IPv4／IPv6 位址 · 大專實驗課</p>
+              <p className="text-muted-foreground text-xs">大專 · 問題先行 · 虛擬封包 lab</p>
             </div>
           </div>
           <nav className="flex flex-wrap items-center gap-1" aria-label="主要">
@@ -62,7 +62,7 @@ export function AppShell() {
         </div>
         <div className="mx-auto max-w-5xl px-4 pb-3">
           <div className="text-muted-foreground mb-1 flex justify-between text-xs">
-            <span>本單元完成度</span>
+            <span>單元 1 完成度</span>
             <span>
               {completedCount}/{totalCount} · {pct}%
             </span>

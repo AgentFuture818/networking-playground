@@ -1,80 +1,82 @@
 import { useMemo, useState } from 'react'
 import { useProgress } from '@/context/progress-context'
-import { classifyAddress, type AddressKind } from '@/lib/ip'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
+
+type Bucket = 'v4-local' | 'v4-global' | 'v6-local' | 'v6-global' | 'invalid'
 
 type Item = {
   prompt: string
-  answer: AddressKind
+  answer: Bucket
   why: string
 }
 
 const ITEMS: Item[] = [
   {
-    prompt: '192.0.2.44',
-    answer: 'ipv4',
-    why: '四個 decimal octet、每個 0–255。192.0.2.0/24 係 RFC 5737 文件用前綴，課堂示範應該用呢類，而唔係隨便填公網地址。',
+    prompt: '192.168.1.23',
+    answer: 'v4-local',
+    why: 'IPv4 私網（192.168.0.0/16）。室友喺同一條 LAN 用得到；外網朋友用呢個 ping 唔到你家門。',
   },
   {
-    prompt: '2001:db8:85a3::8a2e:370:7334',
-    answer: 'ipv6',
-    why: '合法壓縮 IPv6：:: 只出現一次，代表中間連續 0 嘅 hextet。2001:db8::/32 同樣係文件用前綴。',
+    prompt: '198.51.100.10',
+    answer: 'v4-global',
+    why: '文件用公網前綴（RFC 5737），形態上係 global。朋友喺外網可以指到「呢類」地址（真實網站另計）。',
+  },
+  {
+    prompt: '10.0.0.8',
+    answer: 'v4-local',
+    why: '10.0.0.0/8 都係 RFC1918 私網。唔係假地址，係 scope 出唔到公網。',
+  },
+  {
+    prompt: 'fd12:3456::23',
+    answer: 'v6-local',
+    why: 'ULA（fc00::/7）。IPv6 入面接近私網嘅角色，外網預設路由唔到。',
+  },
+  {
+    prompt: '2001:db8:cafe::23',
+    answer: 'v6-global',
+    why: '2001:db8::/32 係文件用 global IPv6。形態上出得街；lab 入面朋友可以送到呢個。',
+  },
+  {
+    prompt: 'fe80::1',
+    answer: 'v6-local',
+    why: 'link-local（fe80::/10）。只喺呢條 link。朋友喺另一個網絡用 fe80 搵你，一定唔得。',
   },
   {
     prompt: '172.16.300.4',
     answer: 'invalid',
-    why: '300 超出一個 octet 嘅上限 255（8 bit 最大值係 2⁸−1）。所以根本唔係 IPv4。',
+    why: '300 超出一個 octet 嘅 0–255。未講 scope 已經唔係合法 IPv4。',
   },
   {
     prompt: '::1',
-    answer: 'ipv6',
-    why: 'loopback。:: 壓縮晒前面嘅 0，最後一個 hextet 係 1，即 ::1。',
+    answer: 'v6-local',
+    why: 'IPv6 loopback。只有呢部機自己。當 local／本機，唔係俾朋友用嘅地址。',
   },
   {
-    prompt: '10.0.0',
+    prompt: '203.0.113.80',
+    answer: 'v4-global',
+    why: '文件用 TEST-NET-3，形態 global。lab 入面外網朋友就係呢個。',
+  },
+  {
+    prompt: '192.168.1.23:8080',
     answer: 'invalid',
-    why: 'IPv4 一定要四個 octet。三組數字可能係口語上講 B-class 網絡，但唔係一個 host address 嘅寫法。',
-  },
-  {
-    prompt: 'fe80::1ff:fe23:4567',
-    answer: 'ipv6',
-    why: 'link-local（fe80::/10）。呢類地址只喺同一個 link 有效，router 唔會當 global 轉發。',
-  },
-  {
-    prompt: '2001:db8::g3',
-    answer: 'invalid',
-    why: 'hextet 只可以係 0–9 同 a–f。g 唔係十六進制 digit。',
-  },
-  {
-    prompt: '255.255.255.255',
-    answer: 'ipv4',
-    why: '呢個係 limited broadcast（全部 bit 為 1）。格式上仍然係合法 IPv4，雖然唔會當普通 host 用。',
-  },
-  {
-    prompt: '::ffff:192.0.2.1',
-    answer: 'ipv6',
-    why: 'IPv4-mapped IPv6。前綴 ::ffff:/96，尾段用 dotted decimal 寫 IPv4。表示「喺 IPv6 socket 入面裝住一個 IPv4 端點」，本身分類仍然係 IPv6 地址形式。',
-  },
-  {
-    prompt: '01.2.3.4',
-    answer: 'invalid',
-    why: '呢個 lab 用 canonical dotted decimal：除咗 0 本身，唔接受 leading zero。歷史上有啲 stack 會當 octal 解析，容易搞出 silent bug。',
+    why: '呢個唔係 IP 地址寫法，而係 host:port。Ping／ICMP 亦冇 port——單元 2 先拆。而家當唔合法地址。',
   },
 ]
 
-const LABELS: { id: AddressKind; text: string }[] = [
-  { id: 'ipv4', text: 'IPv4' },
-  { id: 'ipv6', text: 'IPv6' },
-  { id: 'invalid', text: '唔合法' },
+const LABELS: { id: Bucket; text: string }[] = [
+  { id: 'v4-local', text: 'IPv4 · 出唔到你家門' },
+  { id: 'v4-global', text: 'IPv4 · 出得街' },
+  { id: 'v6-local', text: 'IPv6 · 出唔到你家門' },
+  { id: 'v6-global', text: 'IPv6 · 出得街' },
+  { id: 'invalid', text: '唔合法／唔係純地址' },
 ]
 
 export function ClassifyDrill() {
   const { recordScore, state } = useProgress()
   const [index, setIndex] = useState(0)
-  const [choice, setChoice] = useState<AddressKind | null>(null)
+  const [choice, setChoice] = useState<Bucket | null>(null)
   const [log, setLog] = useState<{ ok: boolean }[]>([])
   const [emptySubmit, setEmptySubmit] = useState(false)
   const [showScore, setShowScore] = useState(false)
@@ -83,7 +85,6 @@ export function ClassifyDrill() {
   const judged = choice !== null && log.length === index + 1
   const finished = showScore && log.length === ITEMS.length
   const correctCount = log.filter((x) => x.ok).length
-
   const best = state.scores.classify?.best ?? 0
 
   const summary = useMemo(() => {
@@ -98,8 +99,7 @@ export function ClassifyDrill() {
       return
     }
     setEmptySubmit(false)
-    const ok = choice === item.answer
-    const nextLog = [...log, { ok }]
+    const nextLog = [...log, { ok: choice === item.answer }]
     setLog(nextLog)
     if (nextLog.length === ITEMS.length) {
       const correct = nextLog.filter((x) => x.ok).length
@@ -132,7 +132,6 @@ export function ClassifyDrill() {
             {summary.correct === summary.total
               ? ' 全對，呢項練習已標記完成。'
               : ' 未全對都可以再做；全對先會當完成。'}
-            {best ? ` 歷史最好係 ${Math.max(best, summary.correct)} 題。` : ''}
           </AlertDescription>
         </Alert>
         <Button onClick={restart}>再做一輪</Button>
@@ -144,15 +143,12 @@ export function ClassifyDrill() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-muted-foreground text-sm">
-          第 {index + 1}／{ITEMS.length} 題
+          第 {index + 1}／{ITEMS.length} 題 · 外網朋友用唔用得？
         </p>
         <Badge>{correctCount} 題已啱</Badge>
       </div>
       <p className="font-mono text-2xl break-all text-primary sm:text-3xl">{item.prompt}</p>
-      <p className="text-muted-foreground text-sm">
-        用 classifyAddress 規則：canonical IPv4、壓縮／完整 IPv6（包括 v4-mapped），其餘當唔合法。
-      </p>
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-2">
         {LABELS.map((opt) => (
           <Button
             key={opt.id}
@@ -170,30 +166,23 @@ export function ClassifyDrill() {
       </div>
       {emptySubmit ? (
         <Alert variant="destructive">
-          <AlertDescription>未揀類型。揀 IPv4、IPv6 或者「唔合法」再核對。</AlertDescription>
+          <AlertDescription>未揀。揀一個範圍，或者「唔合法」再核對。</AlertDescription>
         </Alert>
       ) : null}
       {judged ? (
         <Alert variant={choice === item.answer ? 'default' : 'destructive'}>
-          <AlertTitle>
-            {choice === item.answer ? '啱' : `唔啱（正確：${item.answer === 'invalid' ? '唔合法' : item.answer}）`}
-          </AlertTitle>
-          <AlertDescription>
-            {item.why} 自動分類結果：{classifyAddress(item.prompt)}。
-          </AlertDescription>
+          <AlertTitle>{choice === item.answer ? '啱' : '未啱'}</AlertTitle>
+          <AlertDescription>{item.why}</AlertDescription>
         </Alert>
       ) : null}
       <div className="flex flex-wrap gap-2">
         {!judged ? (
           <Button onClick={submit}>核對</Button>
+        ) : index < ITEMS.length - 1 ? (
+          <Button onClick={next}>下一題</Button>
         ) : (
-          <Button onClick={next} className={cn(index === ITEMS.length - 1 && 'hidden')}>
-            下一題
-          </Button>
-        )}
-        {judged && index === ITEMS.length - 1 ? (
           <Button onClick={() => setShowScore(true)}>睇成績</Button>
-        ) : null}
+        )}
       </div>
     </div>
   )

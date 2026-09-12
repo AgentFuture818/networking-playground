@@ -22,7 +22,7 @@ export function LessonPage() {
       <Alert variant="destructive">
         <AlertTitle>搵唔到呢節</AlertTitle>
         <AlertDescription>
-          單元路徑錯咗。<Link to={unitPath()} className="underline">返 IPv4／IPv6 單元</Link>
+          單元路徑錯咗。<Link to={unitPath()} className="underline">返單元 1</Link>
         </AlertDescription>
       </Alert>
     )
@@ -36,7 +36,7 @@ export function LessonPage() {
       <header className="space-y-2">
         <p className="text-muted-foreground text-sm">
           <Link to={unitPath()} className="underline">
-            IPv4 同 IPv6 位址
+            單元 1 · 點樣搵到對方
           </Link>
         </p>
         <div className="flex flex-wrap items-center gap-2">

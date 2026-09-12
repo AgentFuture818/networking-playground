@@ -1,172 +1,144 @@
-import type { ReactNode } from 'react'
-import { AddressNeedScene } from '@/components/animations/address-need-scene'
-import { CompareScene } from '@/components/animations/compare-scene'
+import { PedagogyFrame } from '@/components/lab/lesson-frame'
+import { PacketLab } from '@/components/lab/packet-lab'
 import { Ipv4Reader } from '@/components/animations/ipv4-reader'
 import { Ipv6Scene } from '@/components/animations/ipv6-scene'
-import { PacketSendScene } from '@/components/animations/packet-send'
-
-function Prose({ children }: { children: ReactNode }) {
-  return <div className="space-y-3 text-[0.95rem] leading-7">{children}</div>
-}
-
-function Term({ children }: { children: ReactNode }) {
-  return <span className="font-mono text-primary">{children}</span>
-}
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Link } from 'react-router-dom'
+import { unitPath } from '@/content/catalog'
 
 export function LessonBody({ lessonId }: { lessonId: string }) {
   switch (lessonId) {
-    case 'why-address':
+    case 'problem':
       return (
-        <Prose>
-          <p>
-            你而家見到嘅係 packet-switched network：資料切成
-            <Term> packet（封包）</Term>
-            ，每包自己帶住足夠資訊，沿途嘅轉發設備先至知送去邊。
-            呢層用嘅識別唔係「阿明部電腦」呢種社交標籤，而係
-            <Term> network-layer address</Term>
-            ——而家最常見就係 IP。
-          </p>
-          <p>
-            類比可以停喺系統層面：郵政能夠運作，係因為每個投遞點有
-            <strong> 穩定、可被轉發系統讀取</strong>
-            嘅地址，而唔係信封上面畫個笑臉。IP 做緊同一類工作。類比完就要入正題：router
-            睇嘅係 header 入面嘅 destination 欄位，再對住自己嘅 forwarding table 做
-            <Term> longest-prefix match</Term>
-            。
-          </p>
-          <p>
-            如果 destination 空缺或者唔合法，轉發平面冇 lookup key，封包到唔到 intended
-            host。下面呢個實驗把同一個 topology 走兩次：一次 header 冇地址，一次寫低
-            <Term> 198.51.100.20</Term>
-            。
-          </p>
-          <AddressNeedScene />
-          <p>
-            小結：IP 地址嘅第一個職責係
-            <strong> 唯一（或者至少喺嗰個 scope 內唯一）噉標示一個 interface</strong>
-            ，等 packet 可以 hop-by-hop 被轉發。下一節先拆 IPv4 點樣用 32 bit 寫呢個識別。
-          </p>
-        </Prose>
+        <PedagogyFrame
+          problem={
+            <>
+              <p>
+                世界上同時有幾十億個網路介面。你要送一包資料出去，轉發設備憑咩決定「交去邊」？如果冇一個可以寫喺封包上面、沿途讀得到嘅識別，封包就只可以撞大運。
+              </p>
+            </>
+          }
+          usecase={
+            <>
+              <p>
+                日常：你喺屋企 <span className="font-mono">ipconfig</span>／<span className="font-mono">ip addr</span> 抄到
+                <span className="font-mono text-ipv4"> 192.168.1.23</span>
+                ，WhatsApp 俾朋友，叫佢「ping 下我」。朋友喺另一度網絡，話 ping 唔到。你改俾一個網站 IP，佢就得。
+              </p>
+              <p>
+                同一串「四個數字」，點解有條得、有條唔得？先唔好背格式——送包睇下。
+              </p>
+            </>
+          }
+          lab={
+            <PacketLab compactPresets={['roommate-v4', 'friend-v4-private', 'friend-v4-web']} />
+          }
+          terms={
+            <>
+              <p>
+                你而家摸過嘅嘢，先至安名。寫喺封包目的地嗰串，叫
+                <strong> IP 地址</strong>
+                。<span className="font-mono">192.168.1.23</span> 呢類（同 10.x、172.16–31.x）係
+                <strong> local／私網</strong>
+                地址：屋企或者宿舍入面用得，預設<strong>唔會</strong>喺公網路由。朋友喺外網用呢個號碼，閘道唔會幫你開門。
+              </p>
+              <p>
+                網站嗰個係 <strong>global／公網</strong> 形態（呢個 lab 用文件用前綴 198.51.100.0/24，唔好當真實網站）。私網地址唔係假，係 <strong>scope</strong> 唔同：出唔到你家門。
+              </p>
+              <p>
+                真正嘅 <span className="font-mono">ping</span> 用 ICMP，下一單元先拆。呢度只係模擬「送一包去呢個地址通唔通」。瀏覽器做唔到真 ICMP 出網。
+              </p>
+            </>
+          }
+        />
       )
-    case 'read-ipv4':
+    case 'lan-lab':
       return (
-        <Prose>
-          <p>
-            IPv4 address 係 <Term>32-bit</Term> 無號整數。人讀嘅時候拆成四個
-            <Term> octet（八位元組）</Term>
-            ，每個 8 bit，所以十進制範圍係 0 到 255，再用 <Term>.</Term> 接埋，叫做
-            <Term> dotted decimal</Term>
-            。例：<Term>192.0.2.81</Term>。
-          </p>
-          <p>
-            講網絡範圍就會用 <Term>prefix length</Term>（字首長度），寫法
-            <Term> 192.0.2.0/24</Term>
-            。<Term>/24</Term> 即前 24 bit 係 network prefix，其餘 8 bit 標 host。
-            呢個單元唔做完整 subnetting，但你要識得讀呢個記法，因為下一節 router 就係用 prefix 配對。
-          </p>
-          <Ipv4Reader />
-          <p>
-            實務備註：呢個 lab 要求 canonical 寫法——唔好寫 <Term>192.168.001.001</Term>
-            。有啲舊 parser 會當 leading zero 係 octal。課堂同設定檔一律寫十進制、唔補零。
-          </p>
-        </Prose>
+        <PedagogyFrame
+          problem={
+            <>
+              <p>
+                單睇 IPv4 私網未夠。而家部機會同時有 IPv4 同 IPv6。你要知：邊啲地址室友用得到、邊啲外網朋友用得到、邊啲只係呢條 Wi-Fi 有效。
+              </p>
+            </>
+          }
+          usecase={
+            <>
+              <p>
+                室友同你連同一條 router，互傳檔案得。外網朋友抄你 <span className="font-mono">ipconfig</span> 嗰個 192.168 就唔得。如果你部機有 <strong>global IPv6</strong>，朋友有時可以直接打到呢個 IPv6——呢條路同 IPv4 NAT 唔一樣。
+              </p>
+            </>
+          }
+          lab={<PacketLab />}
+          terms={
+            <>
+              <p>
+                同一部屋企電腦呢個 lab 擺咗幾種地址，一齊用、唔分開教：
+              </p>
+              <ul className="list-disc space-y-1 pl-5">
+                <li>
+                  <span className="font-mono text-ipv4">192.168.1.23</span> — IPv4 私網。LAN 互傳到；外網朋友傳唔入。出街要經閘道 <strong>NAT</strong>（來源被改成 WAN 公網地址）。
+                </li>
+                <li>
+                  <span className="font-mono text-ipv6">fd12:3456::23</span> — IPv6 <strong>ULA</strong>（fc00::/7）。角色接近私網，唔係「假 IPv6」。
+                </li>
+                <li>
+                  <span className="font-mono text-ipv6">fe80::23</span> — <strong>link-local</strong>，只喺呢條 link。
+                </li>
+                <li>
+                  <span className="font-mono text-ipv6">2001:db8:cafe::23</span> — 文件用 <strong>global IPv6</strong>。朋友由外網送到呢個，閘道可以轉入 LAN，通常唔使 NAT。
+                </li>
+              </ul>
+              <p>
+                IPv6 出現，係因為公網 IPv4 位址空間唔夠；NAT 只係權宜。你而家見到嘅分別唔係「IPv6 長啲」，而係 <strong>scope</strong> 同出唔出到你家門。
+              </p>
+            </>
+          }
+        />
       )
-    case 'send-packet':
+    case 'read-after':
       return (
-        <Prose>
-          <p>
-            IPv4 header 前面幾個你而家要識嘅欄位：source address、destination address、同
-            <Term> TTL（Time To Live）</Term>
-            。TTL 每過一跳減 1，到 0 就丟，用來截斷 routing loop。
-          </p>
-          <p>
-            中間嘅 router <strong>唔需要</strong> 讀 payload 先決定點轉。佢用 destination
-            對 forwarding table 做 prefix match，揀一個出介面，改好 L2 header，再送去下一跳。
-            你而家見到嘅動畫：封包由 Host A 出發，經過 R1、R2，destination bits 會喺每跳被核對一次。
-          </p>
-          <PacketSendScene />
-          <p>
-            地址用緊 RFC 5737 文件前綴（<Term>192.0.2.0/24</Term>、<Term>198.51.100.0/24</Term>
-            ），避免示範時寫實網地址。下一節會解釋點解 32-bit 空間唔夠，同 IPv6 點寫。
-          </p>
-        </Prose>
-      )
-    case 'why-ipv6':
-      return (
-        <Prose>
-          <p>
-            IPv4 公網位址大約 2³² ≈ 43 億。全球 host、手提電話、雲主機一齊要 unique public
-            address 就明顯唔夠。 <Term>NAT</Term> 可以共用一個公網 IPv4，但係權宜：破壞 end-to-end、
-            增加狀態同故障面。IPv6 把地址擴到 <Term>128-bit</Term>，先從根本上放大位址空間。
-          </p>
-          <p>
-            寫法係 8 個 <Term>hextet</Term>（16-bit 一組、最多四粒 hex digit），用 <Term>:</Term> 分隔。
-            連續全 0 嘅組可以壓成 <Term>::</Term>，而且成個地址最多一次。常見 LAN prefix 係
-            <Term> /64</Term>。link-local 由 <Term>fe80::/10</Term> 開始，只喺同一個 link 有效。
-          </p>
-          <Ipv6Scene />
-          <p>
-            你唔使背晒 2¹²⁸ 個具體數字，但要識：IPv6 唔係「長啲嘅 IPv4 加多兩個 octet」，而係另一套
-            128-bit 空間同另一套文字記法。
-          </p>
-        </Prose>
-      )
-    case 'compare':
-      return (
-        <Prose>
-          <p>
-            並排嚟睇：IPv4 32-bit、dotted decimal、耗盡後靠 NAT 續命；IPv6 128-bit、colon-hex、
-            設計上希望還原 end-to-end。兩者 <strong>唔係</strong> 同一個 header 入面可以隨便混寫成一個地址。
-          </p>
-          <p>
-            過渡期主流係 <Term>dual-stack（雙棧）</Term>
-            ：同一部主機、同一個 interface 同時設定 IPv4 同 IPv6。送去 IPv4 目的地就行 IPv4
-            路徑，送去 IPv6 目的地就行 IPv6。作業系統仲可能用 Happy Eyeballs 決定邊條連線先。
-            另外你會見到 <Term>::ffff:192.0.2.1</Term> 呢種 IPv4-mapped IPv6，用嚟喺 IPv6 API 表達 IPv4 端點。
-          </p>
-          <CompareScene />
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full min-w-[28rem] text-left text-sm">
-              <thead className="bg-secondary/60">
-                <tr>
-                  <th className="px-3 py-2 font-medium">項目</th>
-                  <th className="px-3 py-2 font-medium">IPv4</th>
-                  <th className="px-3 py-2 font-medium">IPv6</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t">
-                  <td className="px-3 py-2">長度</td>
-                  <td className="px-3 py-2 font-mono">32-bit</td>
-                  <td className="px-3 py-2 font-mono">128-bit</td>
-                </tr>
-                <tr className="border-t">
-                  <td className="px-3 py-2">文字記法</td>
-                  <td className="px-3 py-2">dotted decimal（4 octet）</td>
-                  <td className="px-3 py-2">colon-hex（8 hextet，可 ::）</td>
-                </tr>
-                <tr className="border-t">
-                  <td className="px-3 py-2">典型 LAN prefix</td>
-                  <td className="px-3 py-2 font-mono">/24 好常見</td>
-                  <td className="px-3 py-2 font-mono">/64</td>
-                </tr>
-                <tr className="border-t">
-                  <td className="px-3 py-2">loopback</td>
-                  <td className="px-3 py-2 font-mono">127.0.0.1</td>
-                  <td className="px-3 py-2 font-mono">::1</td>
-                </tr>
-                <tr className="border-t">
-                  <td className="px-3 py-2">文件用前綴</td>
-                  <td className="px-3 py-2 font-mono">192.0.2.0/24 等</td>
-                  <td className="px-3 py-2 font-mono">2001:db8::/32</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p>
-            下一節兩項練習會考你分類同修正。答錯會即時講規則，唔係淨係打個叉。
-          </p>
-        </Prose>
+        <PedagogyFrame
+          problem={
+            <>
+              <p>
+                你已經用 192.168.1.23 同 2001:db8:cafe::23 送過包。而家先問：呢兩串點讀、點認邊啲 bit 係「呢個網絡」？
+              </p>
+            </>
+          }
+          usecase={
+            <>
+              <p>
+                抄俾朋友之前，你要識認：呢個係四個 0–255 嘅 IPv4，定係 colon-hex 嘅 IPv6；係 192.168 開頭（local），定係出得街嘅 global。認錯 scope，朋友就會再 ping 唔到。
+              </p>
+            </>
+          }
+          lab={
+            <div className="space-y-6">
+              <Ipv4Reader />
+              <Ipv6Scene />
+            </div>
+          }
+          terms={
+            <>
+              <p>
+                先至安名：IPv4 每個 8 bit 叫 <strong>octet</strong>，四個 octet 合共 32-bit，用 dotted decimal 寫。<strong>prefix length</strong>（例如 /24）講前幾多 bit 標網絡。IPv6 係 128-bit、八個 hextet，可用 <span className="font-mono">::</span> 壓連續 0。
+              </p>
+              <p>
+                一部機同時有 IPv4 同 IPv6，叫 <strong>dual-stack（雙棧）</strong>。送去邊個棧，取決於你寫嘅目的地係邊種地址——你喺 lab 已經試過。
+              </p>
+              <Alert>
+                <AlertTitle>單元 2 預告（未解鎖）</AlertTitle>
+                <AlertDescription>
+                  有人會打 <span className="font-mono">ping 192.168.1.23:8080</span>。Ping 問嘅係「呢個 IP 有無人應」，ICMP echo <strong>冇 port</strong>。Port 係另一種問題。
+                  <Link to={unitPath('ping-icmp')} className="mt-1 block underline">
+                    睇單元 2 地圖預告
+                  </Link>
+                </AlertDescription>
+              </Alert>
+            </>
+          }
+        />
       )
     default:
       return <p>搵唔到呢節內容。</p>

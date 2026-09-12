@@ -37,7 +37,7 @@ export function DrillPage() {
       <header className="space-y-2">
         <p className="text-muted-foreground text-sm">
           <Link to={unitPath()} className="underline">
-            IPv4 同 IPv6 位址
+            單元 1 · 點樣搵到對方
           </Link>
         </p>
         <div className="flex flex-wrap items-center gap-2">

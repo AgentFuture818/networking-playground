@@ -89,7 +89,7 @@ export function ProgressPage() {
       <div>
         <h1 className="text-3xl font-semibold">進度</h1>
         <p className="text-muted-foreground mt-2 max-w-2xl text-sm leading-relaxed">
-          預設存在呢個 origin 嘅 localStorage，key 係 <span className="font-mono">netlab.progress.v1</span>
+          預設存在呢個 origin 嘅 localStorage，key 係 <span className="font-mono">netlab.progress.v2</span>
           ，唔用 cookie、冇帳號。進度碼係同一份資料嘅壓縮字串，方便換瀏覽器。
         </p>
       </div>

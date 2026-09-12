@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { octetToBits } from '@/lib/ip'
 import { cn } from '@/lib/utils'
 
-const DEFAULT = [192, 0, 2, 81]
+const DEFAULT = [192, 168, 1, 23]
 
 export function Ipv4Reader() {
   const [octets, setOctets] = useState(DEFAULT)
