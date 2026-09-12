@@ -37,7 +37,7 @@ Workflow：`.github/workflows/pages.yml`（免費 Actions Pages）。
 
 ## 課程地圖
 
-**可玩：** 單元 1 點樣搵到對方（問題先行、屋企 LAN vs 外網朋友、IPv4 私網／IPv6 ULA／global 一齊送封包、之後先讀 octet／prefix／dual-stack、兩項練習）。
+**可玩：** 單元 1 點樣搵到對方（問題先行、認實驗場五位、RFC 1918 三塊私人 IPv4、IPv6 先講 fe80／ULA／global 先至送包、之後先讀 octet／prefix／dual-stack、兩項練習）。
 
 **鎖住預告（2–16）：** DNS（名→地址；Wi-Fi 連到但「冇網」好多時係 DNS）、Ping／ICMP（包括 ping 唔到 port）、subnet／switch／router、broadcast／multicast、packet loss、TCP vs UDP、HTTP 同 port、HTTP/1→2→3（同一個新聞站每一代一個痛）、HTTPS／TLS（明信片 vs 信封；SSL 係舊名；證書要認人）、WebRTC、telnet／nc 手打假 SMTP／HTTP、SSH vs telnet 登入、CDN cache HIT／MISS、香港點行近附近副本（unicast origin／GeoDNS／anycast／應用層揀）、WARP ≠ CDN（MASQUE／QUIC 隧道，排最後）。
 

@@ -26,12 +26,17 @@ const ITEMS: Item[] = [
   {
     prompt: '10.0.0.8',
     answer: 'v4-local',
-    why: '10.0.0.0/8 都係 RFC1918 私網。唔係假地址，係 scope 出唔到公網。',
+    why: '10.0.0.0/8 係 IANA／RFC 1918 三塊私人範圍其中一塊。唔係假地址，係 scope 出唔到公網。',
+  },
+  {
+    prompt: '172.16.4.8',
+    answer: 'v4-local',
+    why: '172.16.0.0/12（172.16–31.x）都係 RFC 1918。唔止 192.168 先算出唔到你家門。',
   },
   {
     prompt: 'fd12:3456::23',
     answer: 'v6-local',
-    why: 'ULA（fc00::/7）。IPv6 入面接近私網嘅角色，外網預設路由唔到。',
+    why: 'ULA（fc00::/7，常見 fd00::/8）。IPv6 入面接近 RFC 1918 嘅角色，唔係 link-local；外網預設路由唔到。',
   },
   {
     prompt: '2001:db8:cafe::23',

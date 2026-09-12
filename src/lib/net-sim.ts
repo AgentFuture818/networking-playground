@@ -3,6 +3,7 @@ import {
   classifyAddress,
   expandIPv6,
   parseIPv4Octets,
+  rfc1918Block,
   sameIPv4Prefix,
 } from '@/lib/ip'
 
@@ -21,11 +22,11 @@ export type LabNode = {
 }
 
 export const LAB_NODES: LabNode[] = [
-  { id: 'laptop', label: '屋企電腦', kind: 'lan-host', x: 118, y: 168, v4: '192.168.1.23', v6Ula: 'fd12:3456::23', v6Global: '2001:db8:cafe::23', v6Link: 'fe80::23' },
-  { id: 'phone', label: '屋企電話', kind: 'lan-host', x: 118, y: 64, v4: '192.168.1.45', v6Ula: 'fd12:3456::45', v6Global: '2001:db8:cafe::45', v6Link: 'fe80::45' },
-  { id: 'router', label: '家用閘道', kind: 'router', x: 340, y: 116, v4: '192.168.1.1', v6Ula: 'fd12:3456::1', v6Global: '2001:db8:cafe::1' },
-  { id: 'friend', label: '外網朋友', kind: 'wan-host', x: 560, y: 64, v4: '203.0.113.80', v6Global: '2001:db8:f00d::80' },
-  { id: 'web', label: '公開網站', kind: 'wan-host', x: 560, y: 168, v4: '198.51.100.10', v6Global: '2001:db8:aaaa::10' },
+  { id: 'laptop', label: '屋企電腦', kind: 'lan-host', x: 118, y: 188, v4: '192.168.1.23', v6Ula: 'fd12:3456::23', v6Global: '2001:db8:cafe::23', v6Link: 'fe80::23' },
+  { id: 'phone', label: '屋企電話', kind: 'lan-host', x: 118, y: 78, v4: '192.168.1.45', v6Ula: 'fd12:3456::45', v6Global: '2001:db8:cafe::45', v6Link: 'fe80::45' },
+  { id: 'router', label: '家用閘道', kind: 'router', x: 340, y: 133, v4: '192.168.1.1', v6Ula: 'fd12:3456::1', v6Global: '2001:db8:cafe::1' },
+  { id: 'friend', label: '外網朋友', kind: 'wan-host', x: 560, y: 78, v4: '203.0.113.80', v6Global: '2001:db8:f00d::80' },
+  { id: 'web', label: '公開網站', kind: 'wan-host', x: 560, y: 188, v4: '198.51.100.10', v6Global: '2001:db8:aaaa::10' },
 ]
 
 export const ROUTER_WAN_V4 = '198.51.100.50'
@@ -112,7 +113,7 @@ export function simulateSend(fromId: string, destRaw: string): SimResult {
       return {
         ok: true,
         hops: [src.id, destNode.id],
-        reason: '同一條屋企 LAN（192.168.1.0/24）。探測封包送到另一部屋企機。',
+        reason: '同一條屋企 LAN（192.168.1.0/24，屬 RFC 1918 嘅 192.168.0.0/16）。探測封包送到另一部屋企機。',
         destFamily: 'v4',
         destScope: scope,
         simulated: true,
@@ -123,7 +124,19 @@ export function simulateSend(fromId: string, destRaw: string): SimResult {
       return {
         ok: true,
         hops: [src.id, 'router'],
-        reason: '送到家用閘道嘅 LAN 口。',
+        reason: '送到家用閘道嘅 LAN 口（192.168.1.1）。呢個仍然係屋企內部號碼。',
+        destFamily: 'v4',
+        destScope: scope,
+        simulated: true,
+      }
+    }
+
+    const privateBlock = rfc1918Block(dstOct)
+    if (src.kind === 'lan-host' && privateBlock && !destNode) {
+      return {
+        ok: false,
+        hops: [src.id],
+        reason: `目的地屬 RFC 1918 私人範圍 ${privateBlock}，但唔係你呢條 192.168.1.0/24。好多間屋／公司可以同時用 10.x 或者 172.16.x；你廳入面嘅機唔會當佢係室友。`,
         destFamily: 'v4',
         destScope: scope,
         simulated: true,
@@ -154,11 +167,23 @@ export function simulateSend(fromId: string, destRaw: string): SimResult {
       }
     }
 
-    if (src.kind === 'wan-host' && (scope === 'private' || scope === 'loopback' || scope === 'link-local')) {
+    if (src.kind === 'wan-host' && scope === 'private') {
+      const block = privateBlock ?? 'RFC 1918'
       return {
         ok: false,
         hops: [src.id, 'router'],
-        reason: '外網朋友送到 192.168.x／私網地址：閘道唔會把你家 LAN 公告出去。地址唔係假，只係出唔到你家門。',
+        reason: `外網朋友送到私人 IPv4（${block}）：閘道唔會把你家／公司內部號碼公告出去。IANA 喺 RFC 1918 劃 10.0.0.0/8、172.16.0.0/12、192.168.0.0/16，就係等呢啲號碼唔使全世界獨一無二。`,
+        destFamily: 'v4',
+        destScope: scope,
+        simulated: true,
+      }
+    }
+
+    if (src.kind === 'wan-host' && (scope === 'loopback' || scope === 'link-local')) {
+      return {
+        ok: false,
+        hops: [src.id],
+        reason: '呢個 IPv4 只喺本機或者呢條 link 有效，外網朋友送唔到。',
         destFamily: 'v4',
         destScope: scope,
         simulated: true,
@@ -224,7 +249,7 @@ export function simulateSend(fromId: string, destRaw: string): SimResult {
       return {
         ok: true,
         hops: [src.id, destNode.id],
-        reason: 'ULA（fd00::/8）好似 IPv4 私網：屋企入面用得，預設唔喺公網路由。',
+        reason: 'ULA（fc00::/7，日常常見 fd00::/8）好似 IPv4 RFC 1918：屋企入面用得，預設唔喺公網路由。佢唔係 link-local。',
         destFamily: 'v6',
         destScope: scope,
         simulated: true,
@@ -300,9 +325,13 @@ export type Preset = { id: string; label: string; fromId: string; dest: string }
 export const LAB_PRESETS: Preset[] = [
   { id: 'roommate-v4', label: '室友 → 192.168.1.23', fromId: 'phone', dest: '192.168.1.23' },
   { id: 'friend-v4-private', label: '外網朋友 → 192.168.1.23', fromId: 'friend', dest: '192.168.1.23' },
+  { id: 'friend-v4-10', label: '外網朋友 → 10.0.0.8', fromId: 'friend', dest: '10.0.0.8' },
+  { id: 'friend-v4-172', label: '外網朋友 → 172.16.1.9', fromId: 'friend', dest: '172.16.1.9' },
   { id: 'friend-v4-web', label: '外網朋友 → 網站 IPv4', fromId: 'friend', dest: '198.51.100.10' },
   { id: 'home-v4-web', label: '屋企電腦 → 網站 IPv4', fromId: 'laptop', dest: '198.51.100.10' },
-  { id: 'friend-v6-ula', label: '外網朋友 → ULA', fromId: 'friend', dest: 'fd12:3456::23' },
-  { id: 'friend-v6-global', label: '外網朋友 → global IPv6', fromId: 'friend', dest: '2001:db8:cafe::23' },
-  { id: 'roommate-v6-ula', label: '室友 → ULA', fromId: 'phone', dest: 'fd12:3456::23' },
+  { id: 'roommate-v6-ll', label: '室友 → fe80::23', fromId: 'phone', dest: 'fe80::23' },
+  { id: 'friend-v6-ll', label: '外網朋友 → fe80::23', fromId: 'friend', dest: 'fe80::23' },
+  { id: 'roommate-v6-ula', label: '室友 → ULA fd12:3456::23', fromId: 'phone', dest: 'fd12:3456::23' },
+  { id: 'friend-v6-ula', label: '外網朋友 → ULA fd12:3456::23', fromId: 'friend', dest: 'fd12:3456::23' },
+  { id: 'friend-v6-global', label: '外網朋友 → 2001:db8:cafe::23', fromId: 'friend', dest: '2001:db8:cafe::23' },
 ]

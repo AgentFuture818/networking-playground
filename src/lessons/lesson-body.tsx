@@ -1,5 +1,7 @@
 import { PedagogyFrame } from '@/components/lab/lesson-frame'
 import { PacketLab } from '@/components/lab/packet-lab'
+import { Rfc1918Briefing } from '@/components/lab/rfc1918-briefing'
+import { Ipv6ScopeBriefing } from '@/components/lab/ipv6-scope-briefing'
 import { Ipv4Reader } from '@/components/animations/ipv4-reader'
 import { Ipv6Scene } from '@/components/animations/ipv6-scene'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -26,21 +28,35 @@ export function LessonBody({ lessonId }: { lessonId: string }) {
                 ，WhatsApp 俾朋友，叫佢「ping 下我」。朋友喺另一度網絡，話 ping 唔到。你改俾一個網站 IP，佢就得。
               </p>
               <p>
-                同一串「四個數字」，點解有條得、有條唔得？先唔好背格式——送包睇下。
+                同一串「四個數字」，點解有條得、有條唔得？先唔好背格式——認人、認私人範圍，再送包。
               </p>
             </>
           }
+          prep={<Rfc1918Briefing />}
           lab={
-            <PacketLab compactPresets={['roommate-v4', 'friend-v4-private', 'friend-v4-web']} />
+            <PacketLab
+              addressLayer="v4"
+              compactPresets={[
+                'roommate-v4',
+                'friend-v4-private',
+                'friend-v4-10',
+                'friend-v4-172',
+                'friend-v4-web',
+              ]}
+            />
           }
           terms={
             <>
               <p>
                 你而家摸過嘅嘢，先至安名。寫喺封包目的地嗰串，叫
                 <strong> IP 地址</strong>
-                。<span className="font-mono">192.168.1.23</span> 呢類（同 10.x、172.16–31.x）係
+                。<span className="font-mono">192.168.1.23</span>、<span className="font-mono">10.0.0.8</span>、
+                <span className="font-mono">172.16.1.9</span> 都係
                 <strong> local／私網</strong>
-                地址：屋企或者宿舍入面用得，預設<strong>唔會</strong>喺公網路由。朋友喺外網用呢個號碼，閘道唔會幫你開門。
+                ：IANA 喺 RFC 1918 劃咗 <span className="font-mono">10.0.0.0/8</span>、
+                <span className="font-mono">172.16.0.0/12</span>、
+                <span className="font-mono">192.168.0.0/16</span>
+                。屋企或者寫字樓入面用得，預設<strong>唔會</strong>喺公網路由。朋友喺外網用呢個號碼，閘道唔會幫你開門。
               </p>
               <p>
                 網站嗰個係 <strong>global／公網</strong> 形態（呢個 lab 用文件用前綴 198.51.100.0/24，唔好當真實網站）。私網地址唔係假，係 <strong>scope</strong> 唔同：出唔到你家門。
@@ -58,32 +74,33 @@ export function LessonBody({ lessonId }: { lessonId: string }) {
           problem={
             <>
               <p>
-                單睇 IPv4 私網未夠。而家部機會同時有 IPv4 同 IPv6。你要知：邊啲地址室友用得到、邊啲外網朋友用得到、邊啲只係呢條 Wi-Fi 有效。
+                單睇 IPv4 私人範圍未夠。而家部機會同時有 IPv4 同 IPv6。IPv6 亦有「只喺呢條線」「只喺呢間屋」「出得街」三種唔同範圍——抄錯一種俾外網朋友，一樣 ping 唔到。
               </p>
             </>
           }
           usecase={
             <>
               <p>
-                室友同你連同一條 router，互傳檔案得。外網朋友抄你 <span className="font-mono">ipconfig</span> 嗰個 192.168 就唔得。如果你部機有 <strong>global IPv6</strong>，朋友有時可以直接打到呢個 IPv6——呢條路同 IPv4 NAT 唔一樣。
+                室友同你連同一條 router，互傳檔案得。外網朋友抄你 <span className="font-mono">ipconfig</span> 嗰個 192.168 就唔得。部機會列出多串 IPv6：有啲只喺而家呢條 Wi-Fi 有效，有啲只喺屋企內部，有啲先至全世界送得到。
               </p>
             </>
           }
-          lab={<PacketLab />}
+          prep={<Ipv6ScopeBriefing />}
+          lab={<PacketLab addressLayer="v6" />}
           terms={
             <>
               <p>
-                同一部屋企電腦呢個 lab 擺咗幾種地址，一齊用、唔分開教：
+                同一部屋企電腦呢個 lab 擺咗幾種地址（你上面已經對過三種 IPv6 範圍先至見到盒上面嘅字）：
               </p>
               <ul className="list-disc space-y-1 pl-5">
                 <li>
-                  <span className="font-mono text-ipv4">192.168.1.23</span> — IPv4 私網。LAN 互傳到；外網朋友傳唔入。出街要經閘道 <strong>NAT</strong>（來源被改成 WAN 公網地址）。
+                  <span className="font-mono text-ipv4">192.168.1.23</span> — IPv4 RFC 1918 私網。LAN 互傳到；外網朋友傳唔入。出街要經閘道 <strong>NAT</strong>（來源被改成 WAN 公網地址）。
                 </li>
                 <li>
-                  <span className="font-mono text-ipv6">fd12:3456::23</span> — IPv6 <strong>ULA</strong>（fc00::/7）。角色接近私網，唔係「假 IPv6」。
+                  <span className="font-mono text-ipv6">fe80::23</span> — <strong>link-local</strong>（<span className="font-mono">fe80::/10</span>），只喺呢條 link。
                 </li>
                 <li>
-                  <span className="font-mono text-ipv6">fe80::23</span> — <strong>link-local</strong>，只喺呢條 link。
+                  <span className="font-mono text-ipv6">fd12:3456::23</span> — IPv6 <strong>ULA</strong>（<span className="font-mono">fc00::/7</span>，常見 <span className="font-mono">fd00::/8</span>）。角色接近 RFC 1918，<strong>唔係</strong> link-local。
                 </li>
                 <li>
                   <span className="font-mono text-ipv6">2001:db8:cafe::23</span> — 文件用 <strong>global IPv6</strong>。朋友由外網送到呢個，閘道可以轉入 LAN，通常唔使 NAT。
@@ -102,14 +119,14 @@ export function LessonBody({ lessonId }: { lessonId: string }) {
           problem={
             <>
               <p>
-                你已經用 192.168.1.23 同 2001:db8:cafe::23 送過包。而家先問：呢兩串點讀、點認邊啲 bit 係「呢個網絡」？
+                你已經用 192.168.1.23、10.0.0.8、172.16.1.9，同 2001:db8:cafe::23 送過包。而家先問：呢兩串點讀、點認邊啲 bit 係「呢個網絡」？
               </p>
             </>
           }
           usecase={
             <>
               <p>
-                抄俾朋友之前，你要識認：呢個係四個 0–255 嘅 IPv4，定係 colon-hex 嘅 IPv6；係 192.168 開頭（local），定係出得街嘅 global。認錯 scope，朋友就會再 ping 唔到。
+                抄俾朋友之前，你要識認：呢個係四個 0–255 嘅 IPv4，定係 colon-hex 嘅 IPv6；係 RFC 1918 私人範圍（10／172.16–31／192.168），定係出得街嘅 global；IPv6 仲要分 fe80、ULA、global。認錯 scope，朋友就會再 ping 唔到。
               </p>
             </>
           }

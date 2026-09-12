@@ -150,13 +150,22 @@ export function formatOctets(octets: number[]): string {
   return octets.join('.')
 }
 
+export type Rfc1918Block = '10.0.0.0/8' | '172.16.0.0/12' | '192.168.0.0/16'
+
+export function rfc1918Block(octets: number[]): Rfc1918Block | null {
+  const a = octets[0] ?? 0
+  const b = octets[1] ?? 0
+  if (a === 10) return '10.0.0.0/8'
+  if (a === 172 && b >= 16 && b <= 31) return '172.16.0.0/12'
+  if (a === 192 && b === 168) return '192.168.0.0/16'
+  return null
+}
+
 export function ipv4Scope(octets: number[]): AddressScope {
   const a = octets[0] ?? 0
   const b = octets[1] ?? 0
   if (a === 127) return 'loopback'
-  if (a === 10) return 'private'
-  if (a === 192 && b === 168) return 'private'
-  if (a === 172 && b >= 16 && b <= 31) return 'private'
+  if (rfc1918Block(octets)) return 'private'
   if (a === 169 && b === 254) return 'link-local'
   return 'global'
 }

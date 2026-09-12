@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LabFigure } from '@/components/lab/figure'
+import { CastIntro, type AddressLayer } from '@/components/lab/cast-intro'
 import { LAB_NODES, LAB_PRESETS, ROUTER_WAN_V4, simulateSend, type LabNode } from '@/lib/net-sim'
 import { octetToBits, parseIPv4Octets } from '@/lib/ip'
+import { packetBoxSize } from '@/lib/packet-label'
 import { cn } from '@/lib/utils'
 
 function lerp(a: number, b: number, t: number) {
@@ -28,25 +30,59 @@ function positionAlong(ids: string[], t: number): { x: number; y: number } {
   return { x: lerp(a.x, b.x, u), y: lerp(a.y, b.y, u) }
 }
 
-function AddrLine({ node }: { node: LabNode }) {
+function AddrLine({ node, layer }: { node: LabNode; layer: AddressLayer }) {
   return (
-    <div className="font-mono text-[9px] leading-3">
+    <div className="font-mono text-[9px] leading-[1.15] break-all">
       {node.v4 ? <div className="text-ipv4">{node.v4}</div> : null}
       {node.kind === 'router' ? <div className="text-ipv4">WAN {ROUTER_WAN_V4}</div> : null}
-      {node.v6Ula ? <div className="text-ipv6 opacity-90">{node.v6Ula}</div> : null}
-      {node.v6Global ? <div className="text-ipv6">{node.v6Global}</div> : null}
+      {layer === 'v6' && node.v6Link ? <div className="text-ipv6 opacity-90">{node.v6Link}</div> : null}
+      {layer === 'v6' && node.v6Ula ? <div className="text-ipv6 opacity-90">{node.v6Ula}</div> : null}
+      {layer === 'v6' && node.v6Global ? <div className="text-ipv6">{node.v6Global}</div> : null}
     </div>
+  )
+}
+
+function MovingPacket({
+  dest,
+  x,
+  y,
+  faded,
+  ok,
+}: {
+  dest: string
+  x: number
+  y: number
+  faded: boolean
+  ok: boolean
+}) {
+  const box = packetBoxSize(dest)
+  const fill = ok ? 'oklch(0.8 0.12 196)' : 'oklch(0.65 0.18 25)'
+  return (
+    <g transform={`translate(${x - box.width / 2}, ${y - box.height / 2})`} opacity={faded ? 0.35 : 1}>
+      <rect width={box.width} height={box.height} rx="6" fill={fill} />
+      <foreignObject width={box.width} height={box.height}>
+        <div
+          className="box-border flex h-full w-full items-center justify-center px-1.5 py-1 text-center font-mono text-[10px] leading-[1.25] break-all"
+          style={{ color: 'oklch(0.18 0.04 250)' }}
+        >
+          {dest}
+        </div>
+      </foreignObject>
+    </g>
   )
 }
 
 export function PacketLab({
   compactPresets,
+  addressLayer = 'v4',
 }: {
   compactPresets?: string[]
+  addressLayer?: AddressLayer
 }) {
   const presets = compactPresets
     ? LAB_PRESETS.filter((p) => compactPresets.includes(p.id))
-    : LAB_PRESETS
+    : LAB_PRESETS.filter((p) => (addressLayer === 'v4' ? !p.id.includes('-v6-') : true))
+  const [castReady, setCastReady] = useState(false)
   const [fromId, setFromId] = useState(presets[0]?.fromId ?? 'phone')
   const [dest, setDest] = useState(presets[0]?.dest ?? '192.168.1.23')
   const [run, setRun] = useState(0)
@@ -58,6 +94,10 @@ export function PacketLab({
   const pkt = positionAlong(hops, playing || t > 0 ? t : 0)
   const v4 = parseIPv4Octets(dest)
   const bits = v4 ? v4.flatMap((o) => octetToBits(o)) : []
+
+  const nodeW = addressLayer === 'v6' ? 148 : 120
+  const nodeH = addressLayer === 'v6' ? 96 : 66
+  const viewH = addressLayer === 'v6' ? 300 : 248
 
   useEffect(() => {
     if (!playing) return
@@ -89,6 +129,10 @@ export function PacketLab({
   const arrived = t > 0.92
   const dropNow = !result.ok && arrived
   const deliverNow = result.ok && arrived
+  const caption =
+    addressLayer === 'v6'
+      ? '圖 · 虛擬封包場。左：屋企 LAN。右：外網朋友同公開網站。盒上面而家寫齊 IPv4 私人、link-local（fe80）、ULA（fd…）、global IPv6。閘道 WAN 198.51.100.50。'
+      : '圖 · 虛擬封包場。左：屋企 LAN（RFC 1918 嘅 192.168.1.0/24）。右：外網朋友同公開網站。呢一節未寫 IPv6 內部號碼。閘道 WAN 198.51.100.50。'
 
   return (
     <div className="space-y-3">
@@ -98,59 +142,73 @@ export function PacketLab({
           封包只喺你瀏覽器入面郁。呢頁<strong>唔會</strong>真係 ICMP ping 互聯網，亦抓唔到你條 LAN 嘅真實封包。想睇自己部機嘅 local 地址，用本機 Terminal：Windows <span className="font-mono">ipconfig</span>，macOS／Linux <span className="font-mono">ip addr</span>／<span className="font-mono">ifconfig</span>。
         </AlertDescription>
       </Alert>
-      <div className="flex flex-wrap gap-2">
-        {presets.map((p) => (
-          <Button
-            key={p.id}
-            size="sm"
-            variant={fromId === p.fromId && dest === p.dest ? 'default' : 'outline'}
-            onClick={() => {
-              setFromId(p.fromId)
-              setDest(p.dest)
-              setT(0)
-              setPlaying(false)
-            }}
-          >
-            {p.label}
-          </Button>
-        ))}
-      </div>
-      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-        <div className="space-y-1">
-          <Label>來源</Label>
-          <div className="flex flex-wrap gap-1">
-            {LAB_NODES.filter((n) => n.kind !== 'router').map((n) => (
+      {!castReady ? (
+        <CastIntro addressLayer={addressLayer} onReady={() => setCastReady(true)} />
+      ) : (
+        <>
+          <div className="flex flex-wrap gap-2">
+            {presets.map((p) => (
               <Button
-                key={n.id}
+                key={p.id}
                 size="sm"
-                variant={fromId === n.id ? 'secondary' : 'outline'}
-                onClick={() => setFromId(n.id)}
+                variant={fromId === p.fromId && dest === p.dest ? 'default' : 'outline'}
+                onClick={() => {
+                  setFromId(p.fromId)
+                  setDest(p.dest)
+                  setT(0)
+                  setPlaying(false)
+                }}
               >
-                {n.label}
+                {p.label}
               </Button>
             ))}
           </div>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="dest">目的地地址</Label>
-          <Input
-            id="dest"
-            value={dest}
-            onChange={(e) => setDest(e.target.value)}
-            className="font-mono"
-            spellCheck={false}
+          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <div className="space-y-1">
+              <Label>來源</Label>
+              <div className="flex flex-wrap gap-1">
+                {LAB_NODES.filter((n) => n.kind !== 'router').map((n) => (
+                  <Button
+                    key={n.id}
+                    size="sm"
+                    variant={fromId === n.id ? 'secondary' : 'outline'}
+                    onClick={() => setFromId(n.id)}
+                  >
+                    {n.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="dest">目的地地址</Label>
+              <Input
+                id="dest"
+                value={dest}
+                onChange={(e) => setDest(e.target.value)}
+                className="font-mono"
+                spellCheck={false}
+              />
+            </div>
+            <Button onClick={send}>送出探測封包</Button>
+          </div>
+        </>
+      )}
+      <LabFigure caption={caption}>
+        <svg viewBox={`0 0 680 ${viewH}`} className="h-auto w-full min-w-[36rem]">
+          <rect
+            x="24"
+            y="18"
+            width="250"
+            height={viewH - 36}
+            rx="12"
+            fill="oklch(0.22 0.03 250 / 0.6)"
+            stroke="oklch(0.45 0.04 250)"
           />
-        </div>
-        <Button onClick={send}>送出探測封包</Button>
-      </div>
-      <LabFigure caption="圖 · 虛擬封包場。左：屋企 LAN（私網 IPv4 + ULA／global IPv6）。右：外網朋友同公開網站。閘道 WAN 198.51.100.50。">
-        <svg viewBox="0 0 680 240" className="h-auto w-full min-w-[36rem]">
-          <rect x="24" y="18" width="250" height="204" rx="12" fill="oklch(0.22 0.03 250 / 0.6)" stroke="oklch(0.45 0.04 250)" />
           <text x="149" y="38" textAnchor="middle" fill="oklch(0.72 0.02 250)" fontSize="11">
             你家 LAN（出唔到門嘅範圍）
           </text>
-          <path d="M274 116 H306" stroke="oklch(0.55 0.04 250)" strokeWidth="2" />
-          <path d="M374 116 H520" stroke="oklch(0.55 0.04 250)" strokeWidth="2" />
+          <path d="M274 133 H306" stroke="oklch(0.55 0.04 250)" strokeWidth="2" />
+          <path d="M374 133 H520" stroke="oklch(0.55 0.04 250)" strokeWidth="2" />
           {LAB_NODES.map((node) => {
             const active = hops.includes(node.id) && playing
             const destHit = deliverNow && hops[hops.length - 1] === node.id
@@ -158,41 +216,40 @@ export function PacketLab({
             return (
               <g key={node.id}>
                 <rect
-                  x={node.x - 58}
-                  y={node.y - 34}
-                  width="116"
-                  height="68"
+                  x={node.x - nodeW / 2}
+                  y={node.y - nodeH / 2}
+                  width={nodeW}
+                  height={nodeH}
                   rx="8"
                   className={cn(active && 'hop-active')}
                   fill={destHit ? 'oklch(0.42 0.08 150)' : dropHit ? 'oklch(0.35 0.08 25)' : 'oklch(0.24 0.03 250)'}
                   stroke={active ? 'oklch(0.8 0.12 196)' : 'oklch(0.45 0.04 250)'}
                 />
-                <text x={node.x} y={node.y - 18} textAnchor="middle" fill="oklch(0.95 0.01 95)" fontSize="11">
+                <text x={node.x} y={node.y - nodeH / 2 + 16} textAnchor="middle" fill="oklch(0.95 0.01 95)" fontSize="11">
                   {node.label}
                 </text>
-                <foreignObject x={node.x - 54} y={node.y - 8} width="108" height="40">
-                  <AddrLine node={node} />
+                <foreignObject
+                  x={node.x - nodeW / 2 + 6}
+                  y={node.y - nodeH / 2 + 20}
+                  width={nodeW - 12}
+                  height={nodeH - 26}
+                >
+                  <AddrLine node={node} layer={addressLayer} />
                 </foreignObject>
               </g>
             )
           })}
-          {(playing || t > 0) && hops.length > 0 ? (
-            <g transform={`translate(${pkt.x - 36}, ${pkt.y - 14})`} opacity={dropNow ? 0.35 : 1}>
-              <rect width="72" height="28" rx="6" fill={result.ok || !arrived ? 'oklch(0.8 0.12 196)' : 'oklch(0.65 0.18 25)'} />
-              <text
-                x="36"
-                y="18"
-                textAnchor="middle"
-                fontSize="8"
-                fontFamily="IBM Plex Mono, ui-monospace, monospace"
-                fill="oklch(0.18 0.04 250)"
-              >
-                {dest.length > 18 ? `${dest.slice(0, 16)}…` : dest}
-              </text>
-            </g>
+          {castReady && (playing || t > 0) && hops.length > 0 ? (
+            <MovingPacket
+              dest={dest}
+              x={pkt.x}
+              y={pkt.y}
+              faded={dropNow}
+              ok={result.ok || !arrived}
+            />
           ) : null}
         </svg>
-        {bits.length === 32 ? (
+        {castReady && bits.length === 32 ? (
           <div className="mt-3 px-1">
             <div className="text-muted-foreground mb-1 text-[11px]">IPv4 destination 32 bit（傳送途中逐粒亮）</div>
             <div className="flex flex-wrap gap-1">
@@ -207,13 +264,15 @@ export function PacketLab({
               ))}
             </div>
           </div>
-        ) : (
-          <p className="text-muted-foreground mt-3 px-1 text-[11px]">
-            IPv6 目的地：{dest} · scope {result.destScope}
+        ) : null}
+        {castReady && bits.length !== 32 ? (
+          <p className="text-muted-foreground mt-3 px-1 text-[11px] break-all">
+            IPv6 目的地（完整）：{dest}
+            {result.destScope !== 'invalid' ? ` · 範圍 ${result.destScope}` : ''}
           </p>
-        )}
+        ) : null}
       </LabFigure>
-      {t > 0.05 ? (
+      {castReady && t > 0.05 ? (
         <Alert variant={result.ok ? 'default' : 'destructive'}>
           <AlertTitle>
             {result.ok ? '模擬結果：送到' : '模擬結果：送唔到'}

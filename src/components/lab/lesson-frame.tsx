@@ -3,11 +3,13 @@ import type { ReactNode } from 'react'
 export function PedagogyFrame({
   problem,
   usecase,
+  prep,
   lab,
   terms,
 }: {
   problem: ReactNode
   usecase: ReactNode
+  prep?: ReactNode
   lab: ReactNode
   terms: ReactNode
 }) {
@@ -21,6 +23,12 @@ export function PedagogyFrame({
         <p className="text-ipv4 text-xs font-semibold tracking-wider uppercase">日常見到</p>
         <div className="space-y-3 text-[0.95rem] leading-7">{usecase}</div>
       </section>
+      {prep ? (
+        <section className="space-y-3">
+          <p className="text-xs font-semibold tracking-wider text-amber-200 uppercase">先認清楚</p>
+          {prep}
+        </section>
+      ) : null}
       <section className="space-y-3">
         <p className="text-xs font-semibold tracking-wider text-cyan-300 uppercase">親手玩</p>
         {lab}

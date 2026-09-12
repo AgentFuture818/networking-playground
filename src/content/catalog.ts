@@ -42,13 +42,13 @@ export const unit1Lessons: LessonMeta[] = [
     id: 'problem',
     title: '世界上咁多部機，封包交去邊？',
     minutes: 8,
-    outcome: '用「朋友 ping 唔到 192.168.1.23」呢個問題，而唔係先背地址格式。',
+    outcome: '用「朋友 ping 唔到 192.168.1.23」呢個問題，再問點解屋企唔使每部機都有公網號碼。',
   },
   {
     id: 'lan-lab',
     title: '虛擬 lab：屋企互傳到、出面傳唔入',
     minutes: 14,
-    outcome: '親手送封包，睇 IPv4 私網、IPv6 ULA／global 邊條路通。',
+    outcome: '親手送封包，睇屋企互傳到、出面傳唔入；IPv6 內部同出街唔同路。',
   },
   {
     id: 'read-after',
