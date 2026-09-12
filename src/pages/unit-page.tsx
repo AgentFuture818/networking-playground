@@ -36,10 +36,12 @@ export function UnitPage() {
           <p className="text-primary text-xs font-semibold tracking-wider uppercase">問題</p>
           <p className="leading-7">{unit.problem}</p>
         </section>
-        <section className="space-y-1">
-          <p className="text-ipv4 text-xs font-semibold tracking-wider uppercase">日常見到</p>
-          <p className="leading-7">{unit.usecase}</p>
-        </section>
+        {unit.usecase ? (
+          <section className="space-y-1">
+            <p className="text-ipv4 text-xs font-semibold tracking-wider uppercase">日常見到</p>
+            <p className="leading-7">{unit.usecase}</p>
+          </section>
+        ) : null}
         <section className="space-y-1">
           <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">之後會摸</p>
           <p className="text-muted-foreground leading-7">{unit.touch}</p>
@@ -48,14 +50,29 @@ export function UnitPage() {
           <AlertTitle>內容未解鎖</AlertTitle>
           <AlertDescription>
             地圖預告得呢度。課文同 lab 之後先寫，避免而家變成定義清單。
+            {unit.id === 'dns'
+              ? ' 呢課只解決名點變地址。Wi-Fi 連到但上網無能好多時係 DNS；未講點揀邊個國家嗰份副本。'
+              : ''}
             {unit.id === 'ping-icmp'
               ? ' 極短提點：有人想 ping host:8080。ICMP echo 冇 port；呢頁唔會假裝瀏覽器可以 ping 外網。'
+              : ''}
+            {unit.id === 'http-generations'
+              ? ' 同一個新聞頁貫穿三代：連線成本 → multiplex 仍然捱 TCP head-of-line → HTTP 改行 QUIC／UDP。'
+              : ''}
+            {unit.id === 'tls-https'
+              ? ' HTTP 係明信片、HTTPS 係信封。SSL 係退休舊名；而家用 TLS。證書要認人，唔止加密。'
+              : ''}
+            {unit.id === 'cdn'
+              ? ' 呢課只講 cache HIT／MISS。點樣令香港行去附近嗰份，下一格先問。'
+              : ''}
+            {unit.id === 'nearby-copy'
+              ? ' 要見到幾個答法並排：unicast origin、GeoDNS、anycast（同一個 IP、好多道門）、應用層自己揀。'
               : ''}
             {unit.id === 'telnet-nc'
               ? ' 真公共 MX／真 SMTP 出網唔玩；之後先有假 SMTP／假 HTTP 手打。'
               : ''}
             {unit.id === 'warp'
-              ? ' WARP 係 overlay 隧道（MASQUE／QUIC），唔係 CDN cache。'
+              ? ' WARP 係 overlay 隧道（MASQUE／QUIC），唔係 CDN cache。排喺地圖最後。'
               : ''}
           </AlertDescription>
         </Alert>

@@ -130,8 +130,8 @@ export function LessonBody({ lessonId }: { lessonId: string }) {
               <Alert>
                 <AlertTitle>單元 2 預告（未解鎖）</AlertTitle>
                 <AlertDescription>
-                  有人會打 <span className="font-mono">ping 192.168.1.23:8080</span>。Ping 問嘅係「呢個 IP 有無人應」，ICMP echo <strong>冇 port</strong>。Port 係另一種問題。
-                  <Link to={unitPath('ping-icmp')} className="mt-1 block underline">
+                  你唔會記一串 IP。打 <span className="font-mono">google.com</span> 之前，部機都要先問名先至有地址送得出。Wi-Fi 連到但「上網無能」，好多時係 DNS 問唔到，唔係「冇網」。呢課只解決名 → 地址。
+                  <Link to={unitPath('dns')} className="mt-1 block underline">
                     睇單元 2 地圖預告
                   </Link>
                 </AlertDescription>

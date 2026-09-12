@@ -61,7 +61,7 @@ const ITEMS: Item[] = [
   {
     prompt: '192.168.1.23:8080',
     answer: 'invalid',
-    why: '呢個唔係 IP 地址寫法，而係 host:port。Ping／ICMP 亦冇 port——單元 2 先拆。而家當唔合法地址。',
+    why: '呢個唔係 IP 地址寫法，而係 host:port。Ping／ICMP 亦冇 port——單元 3 先拆。而家當唔合法地址。',
   },
 ]
 

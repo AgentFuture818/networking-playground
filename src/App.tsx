@@ -22,7 +22,15 @@ export default function App() {
             />
             <Route
               path="/tracks/network/units/http-ports"
-              element={<Navigate to="/tracks/network/units/http-https" replace />}
+              element={<Navigate to="/tracks/network/units/http-port" replace />}
+            />
+            <Route
+              path="/tracks/network/units/http-https"
+              element={<Navigate to="/tracks/network/units/http-port" replace />}
+            />
+            <Route
+              path="/tracks/network/units/http3-quic"
+              element={<Navigate to="/tracks/network/units/http-generations" replace />}
             />
             <Route path="/tracks/:trackId" element={<TrackPage />} />
             <Route path="/tracks/:trackId/units/:unitId" element={<UnitPage />} />

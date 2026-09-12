@@ -30,10 +30,12 @@ export function UnitMap({ units }: { units: UnitMeta[] }) {
                   <span className="text-foreground/80">問題：</span>
                   {unit.problem}
                 </span>
-                <span className="block">
-                  <span className="text-foreground/80">日常：</span>
-                  {unit.usecase}
-                </span>
+                {unit.usecase ? (
+                  <span className="block">
+                    <span className="text-foreground/80">日常：</span>
+                    {unit.usecase}
+                  </span>
+                ) : null}
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -1,6 +1,6 @@
 # 網絡傳送實驗
 
-GitHub Pages 靜態站，用書面**廣東話**教 computer networking。對象係香港**大專**：問題 → 日常 usecase → 親手玩 → 先至安專有名詞。第一期只解鎖**單元 1「點樣搵到對方」**（IPv4／IPv6 連埋 local vs global，虛擬封包 lab）。地圖預告單元 2–13，內容鎖住。另開「伺服器維護」軌道佔位。
+GitHub Pages 靜態站，用書面**廣東話**教 computer networking。對象係香港**大專**：問題 → 日常 usecase → 親手玩 → 先至安專有名詞。第一期只解鎖**單元 1「點樣搵到對方」**（IPv4／IPv6 連埋 local vs global，虛擬封包 lab）。地圖預告單元 2–16，內容鎖住。另開「伺服器維護」軌道佔位。
 
 冇後端、冇登入、冇收費 API。進度：`localStorage` + 「進度碼」／JSON 匯出匯入。
 
@@ -39,7 +39,7 @@ Workflow：`.github/workflows/pages.yml`（免費 Actions Pages）。
 
 **可玩：** 單元 1 點樣搵到對方（問題先行、屋企 LAN vs 外網朋友、IPv4 私網／IPv6 ULA／global 一齊送封包、之後先讀 octet／prefix／dual-stack、兩項練習）。
 
-**鎖住預告（2–13）：** Ping／ICMP（包括 ping 唔到 port）、subnet／switch／router、broadcast／multicast、packet loss、TCP vs UDP、HTTP／HTTPS、WebRTC、telnet／nc 手打假 SMTP／HTTP、SSH vs telnet 登入、CDN（Cloudflare）、HTTP/3 QUIC over UDP、WARP ≠ CDN（MASQUE／QUIC 隧道）。
+**鎖住預告（2–16）：** DNS（名→地址；Wi-Fi 連到但「冇網」好多時係 DNS）、Ping／ICMP（包括 ping 唔到 port）、subnet／switch／router、broadcast／multicast、packet loss、TCP vs UDP、HTTP 同 port、HTTP/1→2→3（同一個新聞站每一代一個痛）、HTTPS／TLS（明信片 vs 信封；SSL 係舊名；證書要認人）、WebRTC、telnet／nc 手打假 SMTP／HTTP、SSH vs telnet 登入、CDN cache HIT／MISS、香港點行近附近副本（unicast origin／GeoDNS／anycast／應用層揀）、WARP ≠ CDN（MASQUE／QUIC 隧道，排最後）。
 
 ## 進度碼
 

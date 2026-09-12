@@ -67,7 +67,7 @@ export function HomePage() {
         <div className="flex items-end justify-between gap-2">
           <div>
             <h2 className="text-lg font-semibold">課程地圖</h2>
-            <p className="text-muted-foreground text-sm">十三格一次過睇到。鎖住嘅只顯示問題同 usecase；課文同 lab 未寫。</p>
+            <p className="text-muted-foreground text-sm">十六格一次過睇到。鎖住嘅只顯示問題同 usecase；課文同 lab 未寫。</p>
           </div>
           <Button asChild variant="outline" size="sm">
             <Link to={`/tracks/${NETWORK_TRACK_ID}`}>網絡傳送軌道</Link>
