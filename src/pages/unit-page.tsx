@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { Check, Lock } from 'lucide-react'
 import { getUnit, lessonPath, drillPath, playPolicy } from '@/content/catalog'
+import { isUnit1Unlocked } from '@/lib/unit1-lock'
 import { useProgress } from '@/context/progress-context'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -108,14 +109,20 @@ export function UnitPage() {
             {unit.usecase}
           </p>
           <p className="text-muted-foreground">
-            <span className="text-foreground font-medium">要摸：</span>
+            <span className="text-foreground font-medium">順序：</span>
             {unit.touch}
           </p>
+        </div>
+        <div className="mt-4">
+          <Button asChild>
+            <Link to={lessonPath('problem')}>由第一節講解開始</Link>
+          </Button>
         </div>
       </div>
       <ol className="space-y-2">
         {unit.lessons.map((lesson, i) => {
           const done = state.completed.includes(lesson.id)
+          const unlocked = isUnit1Unlocked(lesson.id, new Set(state.completed))
           return (
             <li key={lesson.id} className="rounded-lg border p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -127,14 +134,26 @@ export function UnitPage() {
                         <Check className="size-3" />
                         完成
                       </Badge>
+                    ) : !unlocked ? (
+                      <Badge tone="muted" className="ml-2">
+                        <Lock className="size-3" />
+                        未解鎖
+                      </Badge>
                     ) : null}
                   </p>
                   <p className="mt-1 font-medium">{lesson.title}</p>
                   <p className="text-muted-foreground mt-1 text-sm">{lesson.outcome}</p>
                 </div>
-                <Button asChild variant={done ? 'outline' : 'default'}>
-                  <Link to={lessonPath(lesson.id)}>{done ? '重做' : '開始'}</Link>
-                </Button>
+                {unlocked ? (
+                  <Button asChild variant={done ? 'outline' : 'default'}>
+                    <Link to={lessonPath(lesson.id)}>{done ? '重做' : '開始'}</Link>
+                  </Button>
+                ) : (
+                  <Button variant="outline" disabled>
+                    <Lock className="size-3" />
+                    未解鎖
+                  </Button>
+                )}
               </div>
             </li>
           )
@@ -145,6 +164,7 @@ export function UnitPage() {
         <ul className="space-y-2">
           {unit.drills.map((drill) => {
             const done = state.completed.includes(drill.id)
+            const unlocked = isUnit1Unlocked(drill.id, new Set(state.completed))
             const score = state.scores[drill.id]
             return (
               <li key={drill.id} className="rounded-lg border p-4">
@@ -160,9 +180,16 @@ export function UnitPage() {
                       <p className="text-muted-foreground mt-1 text-xs">未交過卷</p>
                     )}
                   </div>
-                  <Button asChild variant={done ? 'outline' : 'default'}>
-                    <Link to={drillPath(drill.id)}>{done ? '再做' : '開始'}</Link>
-                  </Button>
+                  {unlocked ? (
+                    <Button asChild variant={done ? 'outline' : 'default'}>
+                      <Link to={drillPath(drill.id)}>{done ? '再做' : '開始'}</Link>
+                    </Button>
+                  ) : (
+                    <Button variant="outline" disabled>
+                      <Lock className="size-3" />
+                      未解鎖
+                    </Button>
+                  )}
                 </div>
               </li>
             )

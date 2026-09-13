@@ -1,3 +1,5 @@
+import { UNIT1_SEQUENCE, type Unit1ItemId } from '@/lib/unit1-lock'
+
 export type ItemStatus = 'open' | 'soon'
 
 export type LessonMeta = {
@@ -37,12 +39,29 @@ export const UNIT1_ID = 'find-host'
 export const NETWORK_TRACK_ID = 'network'
 export const OPS_TRACK_ID = 'ops'
 
+export const LESSON_ALIASES: Record<string, string> = {
+  'lan-lab': 'lab',
+  'read-after': 'ipv4-read',
+}
+
 export const unit1Lessons: LessonMeta[] = [
   {
     id: 'problem',
-    title: '世界上咁多部機，封包交去邊？',
+    title: '問題：朋友 ping 唔到 192.168',
+    minutes: 5,
+    outcome: '用圖睇外網 ping 屋企號碼唔到、ping 公開網站就到。呢節冇送包。',
+  },
+  {
+    id: 'cast',
+    title: '人物：屋企、閘道、外網、網站',
+    minutes: 5,
+    outcome: '認五位：屋企電腦、電話、閘道、外網朋友、公開網站。',
+  },
+  {
+    id: 'ipv4-read',
+    title: 'IPv4 點睇：四格同三塊私人範圍',
     minutes: 8,
-    outcome: '用「朋友 ping 唔到 192.168.1.23」呢個問題，再問點解屋企唔使每部機都有公網號碼。',
+    outcome: '四個 byte 四格；IANA RFC 1918 三段：10 / 172.16 / 192.168。',
   },
   {
     id: 'v6-write',
@@ -51,16 +70,16 @@ export const unit1Lessons: LessonMeta[] = [
     outcome: '用圖：4 byte vs 16 byte、點解 fd、fe80::23 展開、:: 只可以一個洞。',
   },
   {
-    id: 'lan-lab',
-    title: '虛擬 lab：屋企互傳到、出面傳唔入',
-    minutes: 12,
-    outcome: '親手送封包，睇屋企互傳到、出面傳唔入；IPv6 內部同出街唔同路。',
+    id: 'v6-scope',
+    title: 'IPv6 範圍：呢條線、呢間屋、出得街',
+    minutes: 6,
+    outcome: 'fe80、fd、2001:db8 三種開頭。之後先寫喺封包上。',
   },
   {
-    id: 'read-after',
-    title: '先至讀：你用過嗰串 IPv4／IPv6',
-    minutes: 10,
-    outcome: '用過先至安名：octet、prefix、dual-stack、local vs global。',
+    id: 'lab',
+    title: '虛擬 lab：送包',
+    minutes: 12,
+    outcome: '用前面講過嘅地址送模擬封包。廳入面互傳到，街上傳唔入。',
   },
 ]
 
@@ -68,7 +87,7 @@ export const unit1Drills: DrillMeta[] = [
   {
     id: 'classify',
     title: '練習：朋友喺外網用唔用得呢個地址',
-    outcome: '即時判斷 local／global、IPv4／IPv6，同埋唔合法格式。',
+    outcome: '用前面講過嘅範圍，判斷 local／global、IPv4／IPv6，同埋唔合法格式。',
   },
   {
     id: 'assemble',
@@ -269,7 +288,7 @@ export const unit1: UnitMeta = {
   problem: '世界上咁多部機，點知封包交去邊？',
   usecase: '你俾個地址朋友，點解 192.168.1.23 佢 ping 唔到，但網站 IP 就得。',
   touch:
-    'IPv4 點睇、IPv6 點解出現、local vs global（私網地址唔係假，係出唔到你家門）。虛擬 lab：兩部屋企機互傳到，外網朋友傳唔入。',
+    '問題圖 → 認人 → IPv4 四格同 RFC 1918 → IPv6 點寫 → IPv6 範圍 → 先至虛擬 lab 送包 → 練習。',
   status: 'open',
   lessons: unit1Lessons,
   drills: unit1Drills,
@@ -333,7 +352,7 @@ export function getDrill(trackId: string, unitId: string, drillId: string): Dril
 }
 
 export function allCompletableIds(): string[] {
-  return [...unit1Lessons.map((l) => l.id), ...unit1Drills.map((d) => d.id)]
+  return [...UNIT1_SEQUENCE]
 }
 
 export function lessonPath(lessonId: string): string {
@@ -348,14 +367,24 @@ export function unitPath(unitId: string = UNIT1_ID): string {
   return `/tracks/${NETWORK_TRACK_ID}/units/${unitId}`
 }
 
+export function unit1ItemPath(id: string): string | null {
+  if (unit1Lessons.some((lesson) => lesson.id === id)) return lessonPath(id)
+  if (unit1Drills.some((drill) => drill.id === id)) return drillPath(id)
+  return null
+}
+
+export function unit1ItemTitle(id: string): string {
+  return (
+    unit1Lessons.find((lesson) => lesson.id === id)?.title ??
+    unit1Drills.find((drill) => drill.id === id)?.title ??
+    id
+  )
+}
+
 export function nextItemPath(currentId: string): string | null {
-  const sequence = [
-    ...unit1Lessons.map((l) => ({ id: l.id, path: lessonPath(l.id) })),
-    ...unit1Drills.map((d) => ({ id: d.id, path: drillPath(d.id) })),
-  ]
-  const idx = sequence.findIndex((item) => item.id === currentId)
-  if (idx === -1 || idx === sequence.length - 1) return null
-  return sequence[idx + 1]?.path ?? null
+  const idx = UNIT1_SEQUENCE.indexOf(currentId as Unit1ItemId)
+  if (idx === -1 || idx === UNIT1_SEQUENCE.length - 1) return null
+  return unit1ItemPath(UNIT1_SEQUENCE[idx + 1]!)
 }
 
 export const codeErrorCopy: Record<string, string> = {

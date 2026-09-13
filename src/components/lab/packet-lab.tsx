@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LabFigure } from '@/components/lab/figure'
-import { CastIntro, type AddressLayer } from '@/components/lab/cast-intro'
 import { LAB_NODES, LAB_PRESETS, ROUTER_WAN_V4, simulateSend, type LabNode } from '@/lib/net-sim'
 import { octetToBits, parseIPv4Octets } from '@/lib/ip'
 import { packetBoxSize } from '@/lib/packet-label'
 import { cn } from '@/lib/utils'
+
+export type AddressLayer = 'v4' | 'v6'
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t
@@ -82,7 +83,6 @@ export function PacketLab({
   const presets = compactPresets
     ? LAB_PRESETS.filter((p) => compactPresets.includes(p.id))
     : LAB_PRESETS.filter((p) => (addressLayer === 'v4' ? !p.id.includes('-v6-') : true))
-  const [castReady, setCastReady] = useState(false)
   const [fromId, setFromId] = useState(presets[0]?.fromId ?? 'phone')
   const [dest, setDest] = useState(presets[0]?.dest ?? '192.168.1.23')
   const [run, setRun] = useState(0)
@@ -131,8 +131,8 @@ export function PacketLab({
   const deliverNow = result.ok && arrived
   const caption =
     addressLayer === 'v6'
-      ? '圖 · 虛擬封包場。左：屋企 LAN。右：外網朋友同公開網站。盒上面而家寫齊 IPv4 私人、link-local（fe80）、ULA（fd…）、global IPv6。閘道 WAN 198.51.100.50。'
-      : '圖 · 虛擬封包場。左：屋企 LAN（RFC 1918 嘅 192.168.1.0/24）。右：外網朋友同公開網站。呢一節未寫 IPv6 內部號碼。閘道 WAN 198.51.100.50。'
+      ? '圖 · 左廳、右街。盒上係前面講過嘅地址。閘道 WAN 198.51.100.50。'
+      : '圖 · 左廳（192.168.1.0/24）、右街。閘道 WAN 198.51.100.50。'
 
   return (
     <div className="space-y-3">
@@ -142,57 +142,51 @@ export function PacketLab({
           封包只喺你瀏覽器入面郁。呢頁<strong>唔會</strong>真係 ICMP ping 互聯網，亦抓唔到你條 LAN 嘅真實封包。想睇自己部機嘅 local 地址，用本機 Terminal：Windows <span className="font-mono">ipconfig</span>，macOS／Linux <span className="font-mono">ip addr</span>／<span className="font-mono">ifconfig</span>。
         </AlertDescription>
       </Alert>
-      {!castReady ? (
-        <CastIntro addressLayer={addressLayer} onReady={() => setCastReady(true)} />
-      ) : (
-        <>
-          <div className="flex flex-wrap gap-2">
-            {presets.map((p) => (
+      <div className="flex flex-wrap gap-2">
+        {presets.map((p) => (
+          <Button
+            key={p.id}
+            size="sm"
+            variant={fromId === p.fromId && dest === p.dest ? 'default' : 'outline'}
+            onClick={() => {
+              setFromId(p.fromId)
+              setDest(p.dest)
+              setT(0)
+              setPlaying(false)
+            }}
+          >
+            {p.label}
+          </Button>
+        ))}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div className="space-y-1">
+          <Label>來源</Label>
+          <div className="flex flex-wrap gap-1">
+            {LAB_NODES.filter((n) => n.kind !== 'router').map((n) => (
               <Button
-                key={p.id}
+                key={n.id}
                 size="sm"
-                variant={fromId === p.fromId && dest === p.dest ? 'default' : 'outline'}
-                onClick={() => {
-                  setFromId(p.fromId)
-                  setDest(p.dest)
-                  setT(0)
-                  setPlaying(false)
-                }}
+                variant={fromId === n.id ? 'secondary' : 'outline'}
+                onClick={() => setFromId(n.id)}
               >
-                {p.label}
+                {n.label}
               </Button>
             ))}
           </div>
-          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-            <div className="space-y-1">
-              <Label>來源</Label>
-              <div className="flex flex-wrap gap-1">
-                {LAB_NODES.filter((n) => n.kind !== 'router').map((n) => (
-                  <Button
-                    key={n.id}
-                    size="sm"
-                    variant={fromId === n.id ? 'secondary' : 'outline'}
-                    onClick={() => setFromId(n.id)}
-                  >
-                    {n.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="dest">目的地地址</Label>
-              <Input
-                id="dest"
-                value={dest}
-                onChange={(e) => setDest(e.target.value)}
-                className="font-mono"
-                spellCheck={false}
-              />
-            </div>
-            <Button onClick={send}>送出探測封包</Button>
-          </div>
-        </>
-      )}
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="dest">目的地地址</Label>
+          <Input
+            id="dest"
+            value={dest}
+            onChange={(e) => setDest(e.target.value)}
+            className="font-mono"
+            spellCheck={false}
+          />
+        </div>
+        <Button onClick={send}>送出探測封包</Button>
+      </div>
       <LabFigure caption={caption}>
         <svg viewBox={`0 0 680 ${viewH}`} className="h-auto w-full min-w-[36rem]">
           <rect
@@ -239,7 +233,7 @@ export function PacketLab({
               </g>
             )
           })}
-          {castReady && (playing || t > 0) && hops.length > 0 ? (
+          {(playing || t > 0) && hops.length > 0 ? (
             <MovingPacket
               dest={dest}
               x={pkt.x}
@@ -249,7 +243,7 @@ export function PacketLab({
             />
           ) : null}
         </svg>
-        {castReady && bits.length === 32 ? (
+        {bits.length === 32 ? (
           <div className="mt-3 px-1">
             <div className="text-muted-foreground mb-1 text-[11px]">IPv4 destination 32 bit（傳送途中逐粒亮）</div>
             <div className="flex flex-wrap gap-1">
@@ -265,14 +259,14 @@ export function PacketLab({
             </div>
           </div>
         ) : null}
-        {castReady && bits.length !== 32 ? (
+        {bits.length !== 32 ? (
           <p className="text-muted-foreground mt-3 px-1 text-[11px] break-all">
             IPv6 目的地（完整）：{dest}
             {result.destScope !== 'invalid' ? ` · 範圍 ${result.destScope}` : ''}
           </p>
         ) : null}
       </LabFigure>
-      {castReady && t > 0.05 ? (
+      {t > 0.05 ? (
         <Alert variant={result.ok ? 'default' : 'destructive'}>
           <AlertTitle>
             {result.ok ? '模擬結果：送到' : '模擬結果：送唔到'}

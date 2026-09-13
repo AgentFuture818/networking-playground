@@ -3,15 +3,13 @@ import type { ReactNode } from 'react'
 export function PedagogyFrame({
   problem,
   usecase,
-  prep,
+  teach,
   lab,
-  terms,
 }: {
   problem: ReactNode
   usecase: ReactNode
-  prep?: ReactNode
-  lab: ReactNode
-  terms: ReactNode
+  teach?: ReactNode
+  lab?: ReactNode
 }) {
   return (
     <div className="space-y-8">
@@ -20,23 +18,21 @@ export function PedagogyFrame({
         <div className="space-y-3 text-[0.95rem] leading-7">{problem}</div>
       </section>
       <section className="space-y-2">
-        <p className="text-ipv4 text-xs font-semibold tracking-wider uppercase">日常見到</p>
+        <p className="text-ipv4 text-xs font-semibold tracking-wider uppercase">日常</p>
         <div className="space-y-3 text-[0.95rem] leading-7">{usecase}</div>
       </section>
-      {prep ? (
+      {teach ? (
         <section className="space-y-3">
-          <p className="text-xs font-semibold tracking-wider text-amber-200 uppercase">先認清楚</p>
-          {prep}
+          <p className="text-xs font-semibold tracking-wider text-amber-200 uppercase">講解</p>
+          {teach}
         </section>
       ) : null}
-      <section className="space-y-3">
-        <p className="text-xs font-semibold tracking-wider text-cyan-300 uppercase">親手玩</p>
-        {lab}
-      </section>
-      <section className="space-y-2">
-        <p className="text-ipv6 text-xs font-semibold tracking-wider uppercase">先至安名</p>
-        <div className="space-y-3 text-[0.95rem] leading-7">{terms}</div>
-      </section>
+      {lab ? (
+        <section className="space-y-3">
+          <p className="text-xs font-semibold tracking-wider text-cyan-300 uppercase">先至玩</p>
+          {lab}
+        </section>
+      ) : null}
     </div>
   )
 }

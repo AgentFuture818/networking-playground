@@ -1,74 +1,66 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
-export type AddressLayer = 'v4' | 'v6'
+import { LabFigure } from '@/components/lab/figure'
 
 const CAST = [
-  {
-    id: 'laptop',
-    name: '屋企電腦',
-    v4: '可以同屋企電話互送；出街要經家用閘道。外網朋友用你屋企內部號碼搵你，搵唔到。',
-    v6: '同一條屋企網可以互送。內部用嘅 IPv6 外網朋友打唔入；出得街嗰個，朋友先有機會送到。',
-  },
-  {
-    id: 'phone',
-    name: '屋企電話',
-    v4: '同電腦一樣，係屋企入面另一部機，唔係外網主機。',
-    v6: '同電腦同一條 link。只喺呢條線有效嘅號碼，出到門口就冇用。',
-  },
-  {
-    id: 'router',
-    name: '家用閘道',
-    v4: '一邊連住屋企，一邊連住外網。唔會把屋企內部號碼公告去互聯網。',
-    v6: '負責轉入／轉出。內部範圍唔公開；全球範圍可以轉入 LAN。',
-  },
-  {
-    id: 'friend',
-    name: '外網朋友',
-    v4: '喺另一個網絡。可以去公開網站；打唔入你屋企內部號碼。',
-    v6: '用你屋企內部 IPv6 搵你會失敗；用出得街嗰個先有機會。',
-  },
-  {
-    id: 'web',
-    name: '公開網站',
-    v4: '人人用得出街嘅號碼都可以指到佢。呢個 lab 用文件用地址，唔係真站。',
-    v6: '同樣有出得街嘅 IPv6。屋企機同外網朋友都可以送去呢度。',
-  },
+  { id: 'laptop', name: '屋企電腦', line: '廳入面。' },
+  { id: 'phone', name: '屋企電話', line: '都喺廳。' },
+  { id: 'router', name: '家用閘道', line: '門口。' },
+  { id: 'friend', name: '外網朋友', line: '街上另一間屋。' },
+  { id: 'web', name: '公開網站', line: '街上人人搵到。' },
 ] as const
 
-export function CastIntro({
-  addressLayer,
-  onReady,
-}: {
-  addressLayer: AddressLayer
-  onReady: () => void
-}) {
+export function CastIntro() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>實驗場有邊位？</CardTitle>
-        <CardDescription>
-          未送包之前，先認人。之後封包場入面五個盒就係呢五位——唔好當佢哋全部出得街。
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {CAST.map((role) => (
-            <li key={role.id} className="rounded-lg border bg-background/40 p-3">
-              <p className="font-medium">{role.name}</p>
-              <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-                {addressLayer === 'v6' ? role.v6 : role.v4}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <p className="text-muted-foreground text-sm leading-relaxed">
-          記低：屋企電腦／電話互相睇到對方；外網朋友睇到公開網站；閘道係門口，唔係把廳入面嘅門牌貼去街上。
-        </p>
-        <Button type="button" onClick={onReady}>
-          識咗呢五位，開始送包
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      <LabFigure caption="圖 · 五位。左廳、右街。閘道係門口，唔係把廳入面嘅門牌貼去街上。">
+        <svg viewBox="0 0 680 248" className="h-auto w-full min-w-[36rem]">
+          <rect
+            x="24"
+            y="18"
+            width="250"
+            height="212"
+            rx="12"
+            fill="oklch(0.22 0.03 250 / 0.6)"
+            stroke="oklch(0.45 0.04 250)"
+          />
+          <text x="149" y="40" textAnchor="middle" fill="oklch(0.72 0.02 250)" fontSize="12">
+            廳
+          </text>
+          <text x="560" y="40" textAnchor="middle" fill="oklch(0.72 0.02 250)" fontSize="12">
+            街
+          </text>
+          <rect x="58" y="58" width="180" height="52" rx="8" fill="oklch(0.24 0.03 250)" stroke="oklch(0.45 0.04 250)" />
+          <text x="148" y="89" textAnchor="middle" fill="oklch(0.95 0.01 95)" fontSize="14">
+            屋企電話
+          </text>
+          <rect x="58" y="168" width="180" height="52" rx="8" fill="oklch(0.24 0.03 250)" stroke="oklch(0.45 0.04 250)" />
+          <text x="148" y="199" textAnchor="middle" fill="oklch(0.95 0.01 95)" fontSize="14">
+            屋企電腦
+          </text>
+          <rect x="274" y="98" width="132" height="52" rx="8" fill="oklch(0.24 0.03 250)" stroke="oklch(0.8 0.12 196)" />
+          <text x="340" y="129" textAnchor="middle" fill="oklch(0.95 0.01 95)" fontSize="14">
+            家用閘道
+          </text>
+          <rect x="470" y="58" width="180" height="52" rx="8" fill="oklch(0.24 0.03 250)" stroke="oklch(0.45 0.04 250)" />
+          <text x="560" y="89" textAnchor="middle" fill="oklch(0.95 0.01 95)" fontSize="14">
+            外網朋友
+          </text>
+          <rect x="470" y="168" width="180" height="52" rx="8" fill="oklch(0.24 0.03 250)" stroke="oklch(0.45 0.04 250)" />
+          <text x="560" y="199" textAnchor="middle" fill="oklch(0.95 0.01 95)" fontSize="14">
+            公開網站
+          </text>
+          <path d="M238 84 H274" stroke="oklch(0.55 0.04 250)" strokeWidth="2" />
+          <path d="M238 194 H274" stroke="oklch(0.55 0.04 250)" strokeWidth="2" />
+          <path d="M406 124 H470" stroke="oklch(0.55 0.04 250)" strokeWidth="2" />
+        </svg>
+      </LabFigure>
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {CAST.map((role) => (
+          <li key={role.id} className="rounded-lg border bg-card p-3">
+            <p className="font-medium">{role.name}</p>
+            <p className="text-muted-foreground mt-1 text-sm">{role.line}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

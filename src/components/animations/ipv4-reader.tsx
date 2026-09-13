@@ -22,7 +22,7 @@ export function Ipv4Reader() {
 
   return (
     <div className="space-y-4">
-      <LabFigure caption="圖 3 · 四個 octet 各自對應 8 bit。青色框住嘅係 prefix（網絡字首），其餘係 host 部分。">
+      <LabFigure caption="圖 · 四個 byte 四格。青色框住嘅係 prefix（網絡字首），其餘係 host。">
         <div className="space-y-4 p-2">
           <div className="grid gap-3 sm:grid-cols-4">
             {octets.map((octet, i) => (
@@ -35,7 +35,7 @@ export function Ipv4Reader() {
                   focus === i ? 'border-ipv4 bg-ipv4/10' : 'border-border bg-background/40',
                 )}
               >
-                <div className="text-muted-foreground mb-1 text-[11px]">octet {i + 1}</div>
+                <div className="text-muted-foreground mb-1 text-[11px]">格 {i + 1}</div>
                 <div className="font-mono text-2xl text-ipv4 tabular-nums">{octet}</div>
                 <div className="mt-2 flex gap-1">
                   {octetToBits(octet).map((bit, bi) => (
@@ -65,7 +65,7 @@ export function Ipv4Reader() {
       </LabFigure>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label>改 octet 數值（0–255）</Label>
+          <Label>改四格（0–255）</Label>
           <div className="grid grid-cols-4 gap-2">
             {octets.map((octet, i) => (
               <Input
@@ -74,7 +74,7 @@ export function Ipv4Reader() {
                 value={String(octet)}
                 onChange={(e) => update(i, e.target.value)}
                 onFocus={() => setFocus(i)}
-                aria-label={`octet ${i + 1}`}
+                aria-label={`格 ${i + 1}`}
               />
             ))}
           </div>
@@ -96,7 +96,7 @@ export function Ipv4Reader() {
           />
           <p className="text-muted-foreground text-sm leading-relaxed">
             /{prefix} 即係前 {prefix} bit 標示網絡，其餘 {32 - prefix} bit 標示嗰個網絡入面嘅 host。
-            例如 /24 即前三個 octet 係 network prefix。
+            例如 /24 即前三格係 network prefix。
           </p>
         </div>
       </div>

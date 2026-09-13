@@ -30,7 +30,7 @@ export function AppShell() {
             <Activity className="size-5 text-primary" aria-hidden />
             <div>
               <p className="text-sm font-semibold tracking-wide">網絡傳送實驗</p>
-              <p className="text-muted-foreground text-xs">大專 · 問題先行 · 虛擬封包 lab</p>
+              <p className="text-muted-foreground text-xs">大專 · 問題 → 日常 → 講解 → 玩</p>
             </div>
           </div>
           <nav className="flex flex-wrap items-center gap-1" aria-label="主要">

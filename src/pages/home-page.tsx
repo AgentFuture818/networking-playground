@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Lock } from 'lucide-react'
-import { NETWORK_TRACK_ID, playPolicy, tracks, unit1, unitPath, codeErrorCopy } from '@/content/catalog'
+import { NETWORK_TRACK_ID, playPolicy, tracks, unit1, lessonPath, codeErrorCopy } from '@/content/catalog'
 import { useProgress } from '@/context/progress-context'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -18,12 +18,12 @@ export function HomePage() {
         <Badge>大專實驗課 · 書面廣東話</Badge>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">網絡傳送實驗</h1>
         <p className="text-muted-foreground max-w-2xl leading-7">
-          唔會一開波背 IPv4 格式。每格都係<strong>問題 → 日常 usecase → 親手玩 → 先至安專有名詞</strong>
-          。而家開放單元 1：點樣搵到對方——IPv4／IPv6 連埋 local vs global。
+          唔會一開波背格式。每格都係<strong>問題 → 日常 → 講解 → 玩</strong>
+          。而家開放單元 1：點樣搵到對方。先講解，後送包。
         </p>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link to={unitPath()}>
+            <Link to={lessonPath('problem')}>
               開始單元 1
               <ArrowRight />
             </Link>
