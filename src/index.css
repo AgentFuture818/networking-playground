@@ -137,6 +137,78 @@
   opacity: 0.45;
 }
 
+.oct-box {
+  min-width: 3.15rem;
+  padding: 0.45rem 0.35rem;
+  border-radius: 0.4rem;
+  border: 1px solid oklch(0.55 0.1 82);
+  background: oklch(0.28 0.05 82);
+  color: oklch(0.9 0.1 82);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.hex-byte {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 0.28rem;
+  border: 1px solid oklch(0.42 0.06 305);
+  background: oklch(0.22 0.03 305);
+  color: oklch(0.86 0.08 305);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  display: grid;
+  place-items: center;
+}
+
+.hex-byte.hot {
+  background: oklch(0.76 0.14 305);
+  color: oklch(0.18 0.04 305);
+  border-color: oklch(0.82 0.12 305);
+}
+
+.hex-byte.dim {
+  opacity: 0.4;
+}
+
+.hex-group {
+  min-width: 3.4rem;
+  padding: 0.4rem 0.3rem;
+  border-radius: 0.35rem;
+  border: 1px solid oklch(0.42 0.06 305);
+  background: oklch(0.22 0.03 305);
+  color: oklch(0.9 0.08 305);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.hex-group.fill {
+  background: oklch(0.76 0.14 305);
+  color: oklch(0.18 0.04 305);
+  border-color: oklch(0.82 0.12 305);
+}
+
+.hex-group.zero {
+  opacity: 0.45;
+}
+
+.zero-hole {
+  min-width: 4.4rem;
+  min-height: 2.6rem;
+  padding: 0.35rem;
+  border-radius: 0.4rem;
+  border: 1.5px dashed oklch(0.65 0.18 25);
+  background: oklch(0.28 0.06 25 / 0.35);
+  color: oklch(0.82 0.12 25);
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  display: grid;
+  place-items: center;
+  gap: 0.15rem;
+}
+
 @keyframes hop-pulse {
   0%,
   100% {

@@ -1,7 +1,8 @@
 import { PedagogyFrame } from '@/components/lab/lesson-frame'
 import { PacketLab } from '@/components/lab/packet-lab'
 import { Rfc1918Briefing } from '@/components/lab/rfc1918-briefing'
-import { Ipv6ScopeBriefing } from '@/components/lab/ipv6-scope-briefing'
+import { Ipv6WriteGate, Ipv6AfterWrite } from '@/components/lab/ipv6-write-gate'
+import { Ipv6WriteLab } from '@/components/animations/ipv6-write-lab'
 import { Ipv4Reader } from '@/components/animations/ipv4-reader'
 import { Ipv6Scene } from '@/components/animations/ipv6-scene'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -68,48 +69,64 @@ export function LessonBody({ lessonId }: { lessonId: string }) {
           }
         />
       )
+    case 'v6-write':
+      return (
+        <PedagogyFrame
+          problem={
+            <p>
+              IPv6 係 16 個 byte。螢幕成日寫短嘅：<span className="font-mono text-ipv6">fe80::23</span>
+              。點還原成 8 組？點解屋企內部常見 <span className="font-mono">fd</span>？
+            </p>
+          }
+          usecase={
+            <p>
+              Wi-Fi 詳情抄到 <span className="font-mono">fe80::23</span>
+              。兩個 <span className="font-mono">::</span> 並排就唔合法——試下就知。
+            </p>
+          }
+          lab={<Ipv6WriteLab />}
+          terms={
+            <p>
+              8 組 × 2 byte。<span className="font-mono">::</span> 只得一個洞。自己編：L=1 → 第一個 byte{' '}
+              <span className="font-mono text-ipv6">fd</span>。
+            </p>
+          }
+        />
+      )
     case 'lan-lab':
       return (
         <PedagogyFrame
           problem={
-            <>
-              <p>
-                單睇 IPv4 私人範圍未夠。而家部機會同時有 IPv4 同 IPv6。IPv6 亦有「只喺呢條線」「只喺呢間屋」「出得街」三種唔同範圍——抄錯一種俾外網朋友，一樣 ping 唔到。
-              </p>
-            </>
+            <p>IPv4 私人範圍之外，IPv6 都有「呢條線 / 呢間屋 / 出得街」。抄錯開頭，外網朋友一樣 ping 唔到。</p>
           }
           usecase={
-            <>
-              <p>
-                室友同你連同一條 router，互傳檔案得。外網朋友抄你 <span className="font-mono">ipconfig</span> 嗰個 192.168 就唔得。部機會列出多串 IPv6：有啲只喺而家呢條 Wi-Fi 有效，有啲只喺屋企內部，有啲先至全世界送得到。
-              </p>
-            </>
+            <p>
+              室友同一條 router 互傳得。外網朋友抄 192.168 唔得。IPv6 抄 <span className="font-mono">fe80</span> 或者{' '}
+              <span className="font-mono">fd</span> 開頭，通常都出唔到門。
+            </p>
           }
-          prep={<Ipv6ScopeBriefing />}
-          lab={<PacketLab addressLayer="v6" />}
+          lab={
+            <Ipv6WriteGate>
+              <Ipv6AfterWrite>
+                <PacketLab addressLayer="v6" />
+              </Ipv6AfterWrite>
+            </Ipv6WriteGate>
+          }
           terms={
-            <>
-              <p>
-                同一部屋企電腦呢個 lab 擺咗幾種地址（你上面已經對過三種 IPv6 範圍先至見到盒上面嘅字）：
-              </p>
-              <ul className="list-disc space-y-1 pl-5">
-                <li>
-                  <span className="font-mono text-ipv4">192.168.1.23</span> — IPv4 RFC 1918 私網。LAN 互傳到；外網朋友傳唔入。出街要經閘道 <strong>NAT</strong>（來源被改成 WAN 公網地址）。
-                </li>
-                <li>
-                  <span className="font-mono text-ipv6">fe80::23</span> — <strong>link-local</strong>（<span className="font-mono">fe80::/10</span>），只喺呢條 link。
-                </li>
-                <li>
-                  <span className="font-mono text-ipv6">fd12:3456::23</span> — IPv6 <strong>ULA</strong>（<span className="font-mono">fc00::/7</span>，常見 <span className="font-mono">fd00::/8</span>）。角色接近 RFC 1918，<strong>唔係</strong> link-local。
-                </li>
-                <li>
-                  <span className="font-mono text-ipv6">2001:db8:cafe::23</span> — 文件用 <strong>global IPv6</strong>。朋友由外網送到呢個，閘道可以轉入 LAN，通常唔使 NAT。
-                </li>
-              </ul>
-              <p>
-                IPv6 出現，係因為公網 IPv4 位址空間唔夠；NAT 只係權宜。你而家見到嘅分別唔係「IPv6 長啲」，而係 <strong>scope</strong> 同出唔出到你家門。
-              </p>
-            </>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                <span className="font-mono text-ipv4">192.168.1.23</span> — RFC 1918。出街先 NAT。
+              </li>
+              <li>
+                <span className="font-mono text-ipv6">fe80::23</span> — 呢條線。
+              </li>
+              <li>
+                <span className="font-mono text-ipv6">fd12:3456::23</span> — L=1 自己編。似 RFC 1918，唔係 fe80。
+              </li>
+              <li>
+                <span className="font-mono text-ipv6">2001:db8:cafe::23</span> — 出得街（文件用）。
+              </li>
+            </ul>
           }
         />
       )

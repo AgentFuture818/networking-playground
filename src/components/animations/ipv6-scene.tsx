@@ -67,13 +67,11 @@ export function Ipv6Scene() {
             ))}
           </div>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            文件用前綴 <span className="font-mono text-ipv6">2001:db8::/32</span>
-            。LAN 上面好常見嘅係 <span className="font-mono">/64</span> prefix：前 64 bit
-            標網絡，後 64 bit 標 interface。
+            文件用前綴 <span className="font-mono text-ipv6">2001:db8::/32</span>。撳下面睇 <span className="font-mono">::</span>。
           </p>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="secondary" onClick={() => setShowCompress((v) => !v)}>
-              {showCompress ? '睇返完整 8 組' : '做 :: 壓縮'}
+              {showCompress ? '8 組' : '::'}
             </Button>
             <Button
               size="sm"
@@ -90,9 +88,6 @@ export function Ipv6Scene() {
           {showCompress ? (
             <p className="font-mono text-sm text-ipv6">
               {expanded} → {compressed}
-              <span className="text-muted-foreground mt-1 block font-sans">
-                規則：連續最多嗰段 0 先可以壓成 ::，而且成個地址最多一次。開頭嘅 hextet 可以刪 leading zero，但唔可以刪到變成空（要用 0）。
-              </span>
             </p>
           ) : null}
         </div>

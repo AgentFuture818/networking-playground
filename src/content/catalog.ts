@@ -45,9 +45,15 @@ export const unit1Lessons: LessonMeta[] = [
     outcome: '用「朋友 ping 唔到 192.168.1.23」呢個問題，再問點解屋企唔使每部機都有公網號碼。',
   },
   {
+    id: 'v6-write',
+    title: 'IPv6 點寫：16 個 byte',
+    minutes: 8,
+    outcome: '用圖：4 byte vs 16 byte、點解 fd、fe80::23 展開、:: 只可以一個洞。',
+  },
+  {
     id: 'lan-lab',
     title: '虛擬 lab：屋企互傳到、出面傳唔入',
-    minutes: 14,
+    minutes: 12,
     outcome: '親手送封包，睇屋企互傳到、出面傳唔入；IPv6 內部同出街唔同路。',
   },
   {
